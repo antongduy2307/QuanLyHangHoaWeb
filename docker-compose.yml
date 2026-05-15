@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: quanlyhanghoaweb-postgres
+    environment:
+      POSTGRES_USER: quanlyhanghoa
+      POSTGRES_PASSWORD: quanlyhanghoa_dev
+      POSTGRES_DB: quanlyhanghoa_web
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quanlyhanghoa -d quanlyhanghoa_web"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
