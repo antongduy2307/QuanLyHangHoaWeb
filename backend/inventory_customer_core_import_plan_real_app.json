@@ -1,0 +1,49 @@
+{
+  "source_app_db_path": "validation_sources\\real_app_copy.db",
+  "dry_run": true,
+  "validation_summary": {
+    "product_count": 23,
+    "product_price_count": 30,
+    "inventory_balance_count": 23,
+    "customer_count": 87,
+    "ledger_count": 257,
+    "error_count": 0,
+    "warning_count": 251,
+    "info_count": 20,
+    "affected_ledger_mismatch_customer_count": 34,
+    "deferred_ledger_mismatch_count": 78,
+    "blocking_ledger_mismatch_count": 0,
+    "customers_current_balance_matched_count": 87,
+    "customers_current_balance_mismatch_count": 0
+  },
+  "validator_can_import_core": true,
+  "validator_can_import_full_ledger": false,
+  "imported_counts": {
+    "products": 23,
+    "product_prices": 30,
+    "inventory_balances": 23,
+    "customers": 87,
+    "debt_payments": 22,
+    "customer_ledgers": 84
+  },
+  "deferred_counts": {
+    "deferred_sales_return_ledgers": 173,
+    "ambiguous_debt_payment_groups": 0,
+    "unsupported_core_ledgers": 0
+  },
+  "mapping_counts": {
+    "product_id_mappings": 23,
+    "customer_id_mappings": 87,
+    "debt_payment_mappings": 22
+  },
+  "product_id_map": {},
+  "customer_id_map": {},
+  "debt_payment_ref_id_map": {},
+  "warnings": [
+    "Deferred 173 sales/returns-linked ledger rows for later migration.",
+    "Preserved source customer current_balance snapshots for customers with partial imported ledgers: 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88"
+  ],
+  "errors": [],
+  "can_proceed_to_sales_returns_migration": false,
+  "succeeded": true
+}

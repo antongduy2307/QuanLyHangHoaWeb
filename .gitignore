@@ -35,3 +35,6 @@ Thumbs.db
 .idea/
 .vscode/
 
+docs/*_INVESTIGATION.md
+docs/*_IMPLEMENTATION.md
+docs/*_REPORT.md

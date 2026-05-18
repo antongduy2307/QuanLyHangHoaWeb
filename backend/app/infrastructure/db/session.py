@@ -17,3 +17,10 @@ def get_db_session() -> Generator[Session, None, None]:
     with SessionLocal() as session:
         yield session
 
+
+def reset_engine() -> None:
+    global engine, SessionLocal, settings
+    settings = get_settings()
+    engine.dispose()
+    engine = create_engine(settings.database_url, pool_pre_ping=True)
+    SessionLocal.configure(bind=engine)

@@ -1,0 +1,38 @@
+{
+  "source_app_db_path": "validation_sources\\real_app_copy.db",
+  "phase2_mapping_report_path": "inventory_customer_core_import_report_real_db.json",
+  "dry_run": true,
+  "validation_summary": {
+    "invoice_count": 156,
+    "invoice_item_count": 375,
+    "return_invoice_count": 0,
+    "return_invoice_item_count": 0,
+    "deferred_ledger_count": 173,
+    "error_count": 0,
+    "warning_count": 0
+  },
+  "imported_counts": {
+    "invoices": 156,
+    "invoice_items": 375,
+    "return_invoices": 0,
+    "return_invoice_items": 0,
+    "restored_invoice_charge_ledgers": 134,
+    "restored_invoice_payment_ledgers": 39,
+    "restored_return_ledgers": 0,
+    "created_source_linked_debt_payments": 39
+  },
+  "skipped_ambiguous_deferred_ledgers": 0,
+  "invoice_id_map": {},
+  "return_id_map": {},
+  "source_linked_debt_payment_map": {},
+  "reconciliation": {
+    "customers_checked": 0,
+    "final_balance_matches": 0,
+    "final_balance_mismatches": 0,
+    "inventory_balance_unchanged": true
+  },
+  "warnings": [],
+  "errors": [],
+  "can_import_full_ledger": true,
+  "succeeded": true
+}

@@ -1,0 +1,3074 @@
+{
+  "summary": {
+    "product_count": 23,
+    "product_price_count": 30,
+    "inventory_balance_count": 23,
+    "customer_count": 87,
+    "ledger_count": 257,
+    "error_count": 78,
+    "warning_count": 173,
+    "info_count": 20
+  },
+  "issues": [
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 20,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 22,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 27,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 29,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 31,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 33,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 36,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 38,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 40,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 43,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 45,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 48,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 49,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 51,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 52,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 54,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 55,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 57,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 59,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 60,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 63,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 65,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 67,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 70,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 71,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 72,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 74,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 76,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 77,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 80,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 82,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 86,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 89,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 91,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 94,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 95,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 97,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 100,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 102,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 104,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 107,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 108,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 109,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 110,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 112,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 113,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 114,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 115,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 116,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 117,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 118,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 119,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 120,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 121,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 123,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 124,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 126,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 128,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 129,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 130,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 132,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 135,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 136,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 137,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 139,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 141,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 142,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 143,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 145,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 148,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 150,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 151,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 152,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 155,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 157,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 159,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 160,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 162,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 163,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 166,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 167,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 169,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 172,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 173,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 176,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 180,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 182,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 184,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 185,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 186,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 187,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 189,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 190,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 191,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 193,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 195,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 196,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 197,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 200,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 202,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 204,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 205,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 209,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 210,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 212,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 215,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 216,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 218,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 219,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 223,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 224,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 226,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 227,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 229,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 230,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 231,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 232,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 234,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 235,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 238,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 243,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 245,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 249,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 251,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 253,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 254,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 257,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 259,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 263,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 268,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 270,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 273,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 275,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 277,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 279,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 281,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 282,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 284,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 285,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 287,
+      "details": {
+        "ref_type": "INVOICE",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 288,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 289,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 290,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 291,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 292,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 293,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 294,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 295,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 296,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 297,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 298,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 299,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 300,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 301,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 302,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 303,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 304,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 305,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 306,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 307,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 308,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 309,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 310,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 311,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 312,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 313,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 314,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 315,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 316,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 317,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 318,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 319,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "warning",
+      "code": "deferred_sales_return_ledger_dependency",
+      "message": "Ledger row references invoice/return behavior deferred to later migration phases.",
+      "table": "customer_balance_ledgers",
+      "row_id": 320,
+      "details": {
+        "ref_type": "DEBT_PAYMENT",
+        "source_ref_type": "INVOICE"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 22,
+      "details": {
+        "customer_id": 3,
+        "expected": "0",
+        "actual": "6675000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 26,
+      "details": {
+        "customer_id": 4,
+        "expected": "147547000",
+        "actual": "120547000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 27,
+      "details": {
+        "customer_id": 4,
+        "expected": "27000000",
+        "actual": "147547000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 28,
+      "details": {
+        "customer_id": 5,
+        "expected": "77112500",
+        "actual": "64875000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 29,
+      "details": {
+        "customer_id": 5,
+        "expected": "12237500",
+        "actual": "77112500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 35,
+      "details": {
+        "customer_id": 9,
+        "expected": "76387500",
+        "actual": "30200000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 36,
+      "details": {
+        "customer_id": 9,
+        "expected": "46187500",
+        "actual": "76387500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 39,
+      "details": {
+        "customer_id": 11,
+        "expected": "161561000",
+        "actual": "150686000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 40,
+      "details": {
+        "customer_id": 11,
+        "expected": "10875000",
+        "actual": "161561000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 46,
+      "details": {
+        "customer_id": 3,
+        "expected": "-6675000",
+        "actual": "0"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 47,
+      "details": {
+        "customer_id": 14,
+        "expected": "28300000",
+        "actual": "17100000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 48,
+      "details": {
+        "customer_id": 14,
+        "expected": "11200000",
+        "actual": "28300000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 50,
+      "details": {
+        "customer_id": 16,
+        "expected": "42200000",
+        "actual": "17450000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 51,
+      "details": {
+        "customer_id": 16,
+        "expected": "24750000",
+        "actual": "42200000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 53,
+      "details": {
+        "customer_id": 18,
+        "expected": "43800000",
+        "actual": "32300000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 54,
+      "details": {
+        "customer_id": 18,
+        "expected": "11500000",
+        "actual": "43800000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 56,
+      "details": {
+        "customer_id": 20,
+        "expected": "52267000",
+        "actual": "45667000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 57,
+      "details": {
+        "customer_id": 20,
+        "expected": "6600000",
+        "actual": "52267000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 58,
+      "details": {
+        "customer_id": 21,
+        "expected": "27217500",
+        "actual": "17260000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 59,
+      "details": {
+        "customer_id": 21,
+        "expected": "9957500",
+        "actual": "27217500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 69,
+      "details": {
+        "customer_id": 28,
+        "expected": "118787500",
+        "actual": "75895000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 70,
+      "details": {
+        "customer_id": 28,
+        "expected": "42892500",
+        "actual": "118787500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 73,
+      "details": {
+        "customer_id": 30,
+        "expected": "10300000",
+        "actual": "-22700000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 74,
+      "details": {
+        "customer_id": 30,
+        "expected": "33000000",
+        "actual": "10300000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 75,
+      "details": {
+        "customer_id": 31,
+        "expected": "108655000",
+        "actual": "94980000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 76,
+      "details": {
+        "customer_id": 31,
+        "expected": "13675000",
+        "actual": "108655000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 88,
+      "details": {
+        "customer_id": 38,
+        "expected": "106550000",
+        "actual": "50000000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 89,
+      "details": {
+        "customer_id": 38,
+        "expected": "56550000",
+        "actual": "106550000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 93,
+      "details": {
+        "customer_id": 40,
+        "expected": "117862500",
+        "actual": "57100000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 94,
+      "details": {
+        "customer_id": 40,
+        "expected": "60762500",
+        "actual": "101687500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 106,
+      "details": {
+        "customer_id": 45,
+        "expected": "17975000",
+        "actual": "6825000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 107,
+      "details": {
+        "customer_id": 45,
+        "expected": "11150000",
+        "actual": "17975000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 125,
+      "details": {
+        "customer_id": 4,
+        "expected": "130822000",
+        "actual": "67497000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 126,
+      "details": {
+        "customer_id": 4,
+        "expected": "230822000",
+        "actual": "130822000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 127,
+      "details": {
+        "customer_id": 54,
+        "expected": "454061000",
+        "actual": "405736000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 128,
+      "details": {
+        "customer_id": 54,
+        "expected": "48325000",
+        "actual": "454061000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 134,
+      "details": {
+        "customer_id": 55,
+        "expected": "53356000",
+        "actual": "47856000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 135,
+      "details": {
+        "customer_id": 55,
+        "expected": "5500000",
+        "actual": "53356000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 140,
+      "details": {
+        "customer_id": 58,
+        "expected": "54926000",
+        "actual": "44251000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 141,
+      "details": {
+        "customer_id": 58,
+        "expected": "10675000",
+        "actual": "54926000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 147,
+      "details": {
+        "customer_id": 61,
+        "expected": "19480000",
+        "actual": "12230000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 148,
+      "details": {
+        "customer_id": 61,
+        "expected": "7250000",
+        "actual": "19480000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 149,
+      "details": {
+        "customer_id": 62,
+        "expected": "128893000",
+        "actual": "60618000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 150,
+      "details": {
+        "customer_id": 62,
+        "expected": "68275000",
+        "actual": "128893000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 153,
+      "details": {
+        "customer_id": 65,
+        "expected": "49054000",
+        "actual": "37454000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 154,
+      "details": {
+        "customer_id": 65,
+        "expected": "11600000",
+        "actual": "0"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 156,
+      "details": {
+        "customer_id": 66,
+        "expected": "51066500",
+        "actual": "37454000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 157,
+      "details": {
+        "customer_id": 66,
+        "expected": "7012500",
+        "actual": "44466500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 161,
+      "details": {
+        "customer_id": 68,
+        "expected": "99770000",
+        "actual": "68270000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 162,
+      "details": {
+        "customer_id": 68,
+        "expected": "31500000",
+        "actual": "99770000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 171,
+      "details": {
+        "customer_id": 71,
+        "expected": "126087500",
+        "actual": "98900000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 172,
+      "details": {
+        "customer_id": 71,
+        "expected": "27187500",
+        "actual": "126087500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 174,
+      "details": {
+        "customer_id": 72,
+        "expected": "44367000",
+        "actual": "25892000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 181,
+      "details": {
+        "customer_id": 40,
+        "expected": "60762500",
+        "actual": "44587500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 182,
+      "details": {
+        "customer_id": 40,
+        "expected": "85775000",
+        "actual": "69600000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 183,
+      "details": {
+        "customer_id": 74,
+        "expected": "108125000",
+        "actual": "86375000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 184,
+      "details": {
+        "customer_id": 74,
+        "expected": "21750000",
+        "actual": "108125000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 188,
+      "details": {
+        "customer_id": 76,
+        "expected": "94260000",
+        "actual": "44660000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 189,
+      "details": {
+        "customer_id": 76,
+        "expected": "49600000",
+        "actual": "94260000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 192,
+      "details": {
+        "customer_id": 78,
+        "expected": "16937000",
+        "actual": "3037000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 193,
+      "details": {
+        "customer_id": 78,
+        "expected": "13900000",
+        "actual": "16937000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 194,
+      "details": {
+        "customer_id": 9,
+        "expected": "41725000",
+        "actual": "20825000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 195,
+      "details": {
+        "customer_id": 9,
+        "expected": "118112500",
+        "actual": "41725000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 196,
+      "details": {
+        "customer_id": 66,
+        "expected": "13612500",
+        "actual": "51066500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 199,
+      "details": {
+        "customer_id": 79,
+        "expected": "187095500",
+        "actual": "136788000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 200,
+      "details": {
+        "customer_id": 79,
+        "expected": "50307500",
+        "actual": "187095500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 203,
+      "details": {
+        "customer_id": 40,
+        "expected": "41188000",
+        "actual": "25013000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 204,
+      "details": {
+        "customer_id": 40,
+        "expected": "16175000",
+        "actual": "41188000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 211,
+      "details": {
+        "customer_id": 81,
+        "expected": "290624500",
+        "actual": "195177000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 212,
+      "details": {
+        "customer_id": 81,
+        "expected": "95447500",
+        "actual": "290624500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 213,
+      "details": {
+        "customer_id": 82,
+        "expected": "46837500",
+        "actual": "3337500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 214,
+      "details": {
+        "customer_id": 82,
+        "expected": "76875000",
+        "actual": "33375000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 215,
+      "details": {
+        "customer_id": 82,
+        "expected": "43500000",
+        "actual": "76875000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 222,
+      "details": {
+        "customer_id": 83,
+        "expected": "16575000",
+        "actual": "75000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 223,
+      "details": {
+        "customer_id": 83,
+        "expected": "16500000",
+        "actual": "16575000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 228,
+      "details": {
+        "customer_id": 84,
+        "expected": "243286500",
+        "actual": "206349000"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 229,
+      "details": {
+        "customer_id": 84,
+        "expected": "36937500",
+        "actual": "243286500"
+      }
+    },
+    {
+      "severity": "error",
+      "code": "ledger_balance_after_mismatch",
+      "message": "Ledger balance_after does not match recomputed running balance.",
+      "table": "customer_balance_ledgers",
+      "row_id": 238,
+      "details": {
+        "customer_id": 72,
+        "expected": "18475000",
+        "actual": "44367000"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 2,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-1468"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 3,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-878"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 4,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-223"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 5,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-807"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 6,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-564"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 7,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-70"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 8,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-20"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 9,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-18"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 10,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-269"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 11,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-78"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 12,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-7"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 13,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-50"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 14,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-1666.4"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 15,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-184"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 16,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-431"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 17,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-256"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 18,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-15"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 19,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-108"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 20,
+      "details": {
+        "column": "on_hand_bich_integer",
+        "value": "-18"
+      }
+    },
+    {
+      "severity": "info",
+      "code": "negative_inventory_balance",
+      "message": "Negative inventory is allowed and will be preserved.",
+      "table": "inventory_balances",
+      "row_id": 21,
+      "details": {
+        "column": "on_hand_bao_decimal",
+        "value": "-16.84"
+      }
+    }
+  ],
+  "can_import_core": false
+}
