@@ -15,6 +15,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
     func,
 )
@@ -108,3 +109,29 @@ class InventoryBalance(Base):
     )
 
     product: Mapped[Product] = relationship(back_populates="inventory_balance")
+
+
+class StockAdjustment(Base):
+    __tablename__ = "stock_adjustments"
+    __table_args__ = (
+        CheckConstraint(
+            "movement_type IN ('STOCK_INCREASE', 'STOCK_DECREASE', 'STOCK_SET')",
+            name="ck_stock_adjustments_movement_type_valid",
+        ),
+        CheckConstraint("unit_type IN ('BAO', 'KG', 'BICH')", name="ck_stock_adjustments_unit_type_valid"),
+        CheckConstraint("quantity > 0", name="ck_stock_adjustments_quantity_positive"),
+        Index("ix_stock_adjustments_product_datetime_id", "product_id", "adjustment_datetime", "id"),
+    )
+
+    id: Mapped[int] = mapped_column(ID_TYPE, Identity(), primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    adjustment_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    movement_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    unit_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(14, 3), nullable=False)
+    quantity_delta: Mapped[Decimal] = mapped_column(Numeric(14, 3), nullable=False)
+    balance_after: Mapped[Decimal | None] = mapped_column(Numeric(14, 3), nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    product: Mapped[Product] = relationship()

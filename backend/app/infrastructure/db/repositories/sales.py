@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -30,7 +32,15 @@ class SalesRepository:
         self.load_invoice_items_for_update(session, invoice.id)
         return invoice
 
-    def list_invoices(self, session: Session, *, customer_id: int | None = None, search: str = "") -> list[Invoice]:
+    def list_invoices(
+        self,
+        session: Session,
+        *,
+        customer_id: int | None = None,
+        search: str = "",
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> list[Invoice]:
         statement = (
             select(Invoice)
             .options(selectinload(Invoice.items))
@@ -38,9 +48,16 @@ class SalesRepository:
         )
         if customer_id is not None:
             statement = statement.where(Invoice.customer_id == customer_id)
+        if date_from is not None:
+            statement = statement.where(Invoice.invoice_datetime >= date_from)
+        if date_to is not None:
+            statement = statement.where(Invoice.invoice_datetime <= date_to)
         needle = search.strip()
         if needle:
-            statement = statement.where(Invoice.invoice_code.ilike(f"%{needle}%"))
+            pattern = f"%{needle}%"
+            statement = statement.where(
+                Invoice.invoice_code.ilike(pattern) | Invoice.customer_snapshot_name.ilike(pattern)
+            )
         return list(session.scalars(statement).all())
 
     def load_invoice_items(self, session: Session, invoice_id: int) -> list[InvoiceItem]:
@@ -58,4 +75,3 @@ class SalesRepository:
 
     def delete_invoice(self, session: Session, invoice: Invoice) -> None:
         session.delete(invoice)
-

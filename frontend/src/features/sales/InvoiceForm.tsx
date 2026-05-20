@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
-import type { Invoice, InvoiceCreatePayload, Product, UnitType } from "../../api/types";
+import type { Customer, Invoice, InvoiceCreatePayload, Product, UnitType } from "../../api/types";
 import { unitLabel } from "../../domain/documents";
 import { formatMoney } from "../../domain/money";
 import { useCustomers } from "../customers/customerQueries";
@@ -14,6 +14,9 @@ import {
   formatCents,
   initialInvoiceFormState,
   invoiceToFormState,
+  isNonNegativeMoney,
+  isPositiveDecimal,
+  lineEstimateCents,
   newInvoiceItem,
   toInvoiceCreatePayload,
   validateInvoiceForm,
@@ -33,6 +36,64 @@ function productLabel(product: Product) {
   return `${product.product_code_base} - ${product.product_name}`;
 }
 
+function productPriceLabel(product: Product) {
+  const enabledPrices = product.prices
+    .filter((price) => price.is_enabled)
+    .map((price) => `${price.unit_type}: ${price.price}`)
+    .join(" | ");
+  return enabledPrices || "Chua co gia dang bat";
+}
+
+function customerLabel(customer: Customer) {
+  return customer.phone ? `${customer.customer_name} - ${customer.phone}` : customer.customer_name;
+}
+
+function mergeHistoricalProducts(activeProducts: Product[], initialInvoice?: Invoice | null) {
+  if (!initialInvoice) {
+    return activeProducts;
+  }
+  const productById = new Map(activeProducts.map((product) => [product.id, product]));
+  const merged = [...activeProducts];
+  for (const item of initialInvoice.items) {
+    if (!productById.has(item.product_id)) {
+      merged.push({
+        id: item.product_id,
+        product_code_base: item.product_code_snapshot,
+        product_name: item.product_name_snapshot,
+        unit_mode: item.unit_type === "BICH" ? "BICH" : "BAO_KG",
+        is_active: false,
+        created_at: initialInvoice.created_at,
+        updated_at: initialInvoice.updated_at,
+        prices: [{ unit_type: item.unit_type, price: item.unit_price, is_enabled: true }],
+        balance: null,
+      });
+    }
+  }
+  return merged;
+}
+
+function mergeHistoricalCustomer(activeCustomers: Customer[], initialInvoice?: Invoice | null) {
+  if (!initialInvoice?.customer_id || activeCustomers.some((customer) => customer.id === initialInvoice.customer_id)) {
+    return activeCustomers;
+  }
+  return [
+    ...activeCustomers,
+    {
+      id: initialInvoice.customer_id,
+      customer_name: initialInvoice.customer_snapshot_name,
+      phone: null,
+      address: null,
+      note: null,
+      current_balance: "0",
+      total_sales: "0",
+      is_walk_in: false,
+      is_active: false,
+      created_at: initialInvoice.created_at,
+      updated_at: initialInvoice.updated_at,
+    },
+  ];
+}
+
 export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, errorMessage, onSubmit }: InvoiceFormProps) {
   const [formState, setFormState] = useState<InvoiceFormState>(() =>
     initialInvoice ? invoiceToFormState(initialInvoice) : initialInvoiceFormState(),
@@ -41,10 +102,11 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
   const [localError, setLocalError] = useState<string | null>(null);
   const productsQuery = useProducts("");
   const customersQuery = useCustomers("", false);
-  const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
-  const customers = customersQuery.data ?? [];
+  const products = useMemo(() => mergeHistoricalProducts(productsQuery.data ?? [], initialInvoice), [initialInvoice, productsQuery.data]);
+  const customers = useMemo(() => mergeHistoricalCustomer(customersQuery.data ?? [], initialInvoice), [customersQuery.data, initialInvoice]);
   const productById = useMemo(() => new Map(products.map((product) => [String(product.id), product])), [products]);
   const estimatedTotal = estimateInvoiceTotal(formState);
+  const firstProduct = products[0];
 
   function updateField(
     field: keyof Pick<InvoiceFormState, "invoice_datetime" | "customer_snapshot_name" | "paid_amount" | "payment_method" | "note">,
@@ -116,6 +178,27 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
     }
   }
 
+  function addInvoiceItem(prefillFirstProduct = false) {
+    const item = newInvoiceItem();
+    if (!prefillFirstProduct || !firstProduct) {
+      setFormState((current) => ({ ...current, items: [...current.items, item] }));
+      return;
+    }
+    const defaultUnit = enabledUnitsForProduct(firstProduct)[0] ?? "";
+    setFormState((current) => ({
+      ...current,
+      items: [
+        ...current.items,
+        {
+          ...item,
+          productId: String(firstProduct.id),
+          unitType: defaultUnit,
+          unitPrice: defaultPriceForUnit(firstProduct, defaultUnit),
+        },
+      ],
+    }));
+  }
+
   if (productsQuery.isLoading || customersQuery.isLoading) {
     return <p className="state-message">Dang tai du lieu hoa don...</p>;
   }
@@ -167,7 +250,7 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
             <option value="">Chon khach hang</option>
             {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
-                {customer.customer_name}
+                {customerLabel(customer)}
               </option>
             ))}
           </select>
@@ -216,13 +299,13 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
                   <option value="">Chon hang hoa</option>
                   {products.map((candidate) => (
                     <option key={candidate.id} value={candidate.id}>
-                      {productLabel(candidate)}
+                      {productLabel(candidate)} ({productPriceLabel(candidate)})
                     </option>
                   ))}
                 </select>
                 {fieldErrors[`${prefix}.productId`] ? <span className="field-error">{fieldErrors[`${prefix}.productId`]}</span> : null}
               </label>
-              {product ? <p className="muted-text">Da chon: {productLabel(product)}</p> : null}
+              {product ? <p className="muted-text">Gia dang bat: {productPriceLabel(product)}</p> : null}
 
               <label>
                 Don vi
@@ -256,6 +339,16 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
                 />
                 {fieldErrors[`${prefix}.unitPrice`] ? <span className="field-error">{fieldErrors[`${prefix}.unitPrice`]}</span> : null}
               </label>
+              <p className="muted-text">
+                Tam tinh dong:{" "}
+                {formatMoney(
+                  formatCents(
+                    isPositiveDecimal(item.quantity) && isNonNegativeMoney(item.unitPrice)
+                      ? lineEstimateCents(item.quantity, item.unitPrice)
+                      : null,
+                  ),
+                )}
+              </p>
 
               <button
                 className="secondary-link"
@@ -270,13 +363,18 @@ export function InvoiceForm({ initialInvoice, mode, isSubmitting, submitLabel, e
         <button
           className="secondary-button"
           type="button"
-          onClick={() => setFormState((current) => ({ ...current, items: [...current.items, newInvoiceItem()] }))}
+          onClick={() => addInvoiceItem()}
         >
           Them dong hang
         </button>
+        <button className="secondary-button" type="button" onClick={() => addInvoiceItem(true)}>
+          Them nhanh hang dau tien
+        </button>
       </fieldset>
 
-      <p className="state-message">Tong tam tinh: {formatMoney(formatCents(estimatedTotal))}</p>
+      <p className="state-message">
+        Tong tam tinh: {formatMoney(formatCents(estimatedTotal))} | Da thanh toan: {formatMoney(formState.paid_amount || "0")}
+      </p>
       {localError || errorMessage ? <p className="form-error">{localError || errorMessage}</p> : null}
 
       <div className="form-actions">

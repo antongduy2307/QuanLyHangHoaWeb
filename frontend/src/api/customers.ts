@@ -1,5 +1,16 @@
 import { apiRequest } from "./client";
-import type { Customer, CustomerCreatePayload, CustomerLedgerRow, DebtPayment, DebtPaymentPayload, DebtPaymentResult } from "./types";
+import type {
+  BalanceAdjustmentPayload,
+  BalanceAdjustmentResult,
+  Customer,
+  CustomerCreatePayload,
+  CustomerDeleteResult,
+  CustomerLedgerRow,
+  CustomerUpdatePayload,
+  DebtPayment,
+  DebtPaymentPayload,
+  DebtPaymentResult,
+} from "./types";
 
 export type ListCustomersParams = {
   includeInactive?: boolean;
@@ -31,6 +42,26 @@ export function createCustomer(payload: CustomerCreatePayload) {
 
 export function getCustomer(customerId: number) {
   return apiRequest<Customer>(`/customers/${customerId}`);
+}
+
+export function updateCustomer(customerId: number, payload: CustomerUpdatePayload) {
+  return apiRequest<Customer>(`/customers/${customerId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteCustomer(customerId: number) {
+  return apiRequest<CustomerDeleteResult>(`/customers/${customerId}`, {
+    method: "DELETE",
+  });
+}
+
+export function adjustCustomerBalance(customerId: number, payload: BalanceAdjustmentPayload) {
+  return apiRequest<BalanceAdjustmentResult>(`/customers/${customerId}/balance-adjustments`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function getCustomerLedger(customerId: number) {

@@ -5,9 +5,12 @@ import { RequireAuth } from "../auth/RequireAuth";
 import { RequireRole } from "../auth/RequireRole";
 import { CustomerCreatePage } from "../features/customers/CustomerCreatePage";
 import { CustomerDetailPage } from "../features/customers/CustomerDetailPage";
+import { CustomerEditPage } from "../features/customers/CustomerEditPage";
 import { CustomerListPage } from "../features/customers/CustomerListPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { ProductCreatePage } from "../features/inventory/ProductCreatePage";
+import { ProductDetailPage } from "../features/inventory/ProductDetailPage";
+import { ProductEditPage } from "../features/inventory/ProductEditPage";
 import { ProductListPage } from "../features/inventory/ProductListPage";
 import { ReportsPlaceholder } from "../features/reports/ReportsPlaceholder";
 import { ReturnDetailPage } from "../features/returns/ReturnDetailPage";
@@ -45,6 +48,15 @@ export const appRoutes: RouteObject[] = [
           </RequireRole>
         ),
       },
+      { path: "inventory/products/:productId", element: <ProductDetailPage /> },
+      {
+        path: "inventory/products/:productId/edit",
+        element: (
+          <RequireRole allowedRoles={adminWriteRoles}>
+            <ProductEditPage />
+          </RequireRole>
+        ),
+      },
       { path: "customers", element: <CustomerListPage /> },
       {
         path: "customers/new",
@@ -55,6 +67,14 @@ export const appRoutes: RouteObject[] = [
         ),
       },
       { path: "customers/:customerId", element: <CustomerDetailPage /> },
+      {
+        path: "customers/:customerId/edit",
+        element: (
+          <RequireRole allowedRoles={adminWriteRoles}>
+            <CustomerEditPage />
+          </RequireRole>
+        ),
+      },
       { path: "sales/invoices", element: <InvoiceListPage /> },
       {
         path: "sales/invoices/new",

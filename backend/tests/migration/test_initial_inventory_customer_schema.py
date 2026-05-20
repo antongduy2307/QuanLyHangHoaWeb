@@ -13,10 +13,10 @@ def test_inventory_customer_schema_revision_exists() -> None:
     assert MIGRATION_PATH.exists()
 
 
-def test_alembic_head_is_auth_schema_revision() -> None:
+def test_alembic_head_is_stock_adjustments_revision() -> None:
     script = ScriptDirectory(str(BACKEND_ROOT / "alembic"))
 
-    assert script.get_current_head() == "20260517_0004"
+    assert script.get_current_head() == "20260519_0006"
 
 
 def test_migration_script_creates_expected_tables() -> None:
@@ -56,3 +56,21 @@ def test_sales_returns_schema_revision_exists() -> None:
     ):
         assert f'op.create_table(\n        "{table_name}"' in migration_text
         assert f'op.drop_table("{table_name}")' in migration_text
+
+
+def test_stock_adjustments_schema_revision_exists() -> None:
+    migration_path = BACKEND_ROOT / "alembic" / "versions" / "20260519_0005_stock_adjustments.py"
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert migration_path.exists()
+    assert 'op.create_table(\n        "stock_adjustments"' in migration_text
+    assert 'op.drop_table("stock_adjustments")' in migration_text
+
+
+def test_stock_set_adjustments_revision_exists() -> None:
+    migration_path = BACKEND_ROOT / "alembic" / "versions" / "20260519_0006_stock_set_adjustments.py"
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert migration_path.exists()
+    assert "STOCK_SET" in migration_text
+    assert "op.create_check_constraint" in migration_text

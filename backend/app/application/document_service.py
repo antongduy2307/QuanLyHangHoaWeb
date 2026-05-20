@@ -31,6 +31,13 @@ class DocumentService:
             document_type=normalized_type.value,
             business_date=business_date,
         )
+        existing_max = self._repository.max_existing_document_number(
+            session,
+            document_type=normalized_type.value,
+            business_date=business_date,
+        )
+        if counter.last_number < existing_max:
+            counter.last_number = existing_max
         counter.last_number += 1
         session.flush()
         return f"{self._prefix(normalized_type)}{business_date:%Y%m%d}-{counter.last_number:03d}"
@@ -51,4 +58,3 @@ class DocumentService:
         if document_type == DocumentType.RETURN:
             return "TR"
         raise ValidationError(f"Unsupported document type: {document_type}")
-

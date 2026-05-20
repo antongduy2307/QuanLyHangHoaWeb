@@ -39,7 +39,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const errorBody = data as ApiErrorBody | undefined;
     const code = errorBody?.error?.code || "http_error";
-    const message = errorBody?.error?.message || `Request failed with status ${response.status}`;
+    const message = errorBody?.error?.message || `Backend tra ve loi HTTP ${response.status}.`;
     throw new ApiError(response.status, code, message);
   }
 

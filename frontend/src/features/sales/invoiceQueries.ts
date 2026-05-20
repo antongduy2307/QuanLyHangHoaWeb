@@ -7,14 +7,15 @@ import { productKeys } from "../inventory/productQueries";
 
 export const invoiceKeys = {
   all: ["invoices"] as const,
-  list: () => [...invoiceKeys.all, "list"] as const,
+  list: (search: string, dateFrom: string, dateTo: string) =>
+    [...invoiceKeys.all, "list", { search, dateFrom, dateTo }] as const,
   detail: (invoiceId: number) => [...invoiceKeys.all, invoiceId] as const,
 };
 
-export function useInvoices() {
+export function useInvoices(search = "", dateFrom = "", dateTo = "") {
   return useQuery({
-    queryKey: invoiceKeys.list(),
-    queryFn: listInvoices,
+    queryKey: invoiceKeys.list(search, dateFrom, dateTo),
+    queryFn: () => listInvoices({ search, dateFrom, dateTo }),
   });
 }
 

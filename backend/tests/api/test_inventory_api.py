@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -79,6 +80,28 @@ def create_product(client: TestClient, headers: dict[str, str], code: str = "gao
     return response.json()
 
 
+def invoice_payload(product_id: int, *, invoice_datetime: datetime) -> dict:
+    return {
+        "customer_id": None,
+        "customer_snapshot_name": "Walk In",
+        "invoice_datetime": invoice_datetime.isoformat(),
+        "paid_amount": "250000",
+        "payment_method": "CASH",
+        "items": [{"product_id": product_id, "unit_type": "BAO", "quantity": "1", "unit_price": "250000"}],
+    }
+
+
+def return_payload(product_id: int, *, return_datetime: datetime) -> dict:
+    return {
+        "source_invoice_id": None,
+        "customer_id": None,
+        "customer_snapshot_name": "Walk In",
+        "return_datetime": return_datetime.isoformat(),
+        "handling_mode": "REFUND_NOW",
+        "items": [{"product_id": product_id, "unit_type": "BAO", "quantity": "1", "unit_price": "250000"}],
+    }
+
+
 def test_health_still_passes(client: TestClient) -> None:
     response = client.get("/api/health")
 
@@ -150,9 +173,15 @@ def test_read_only_can_get_but_cannot_write_inventory(client: TestClient, sessio
             "prices": [{"unit_type": "BAO", "price": "1", "is_enabled": True}],
         },
     )
+    set_response = client.post(
+        f"/api/inventory/products/{create_product(client, owner_headers, 'set-readonly')['id']}/stock/set",
+        headers=read_headers,
+        json={"unit_type": "BAO", "target_quantity": "1"},
+    )
 
     assert read_response.status_code == 200
     assert write_response.status_code == 403
+    assert set_response.status_code == 403
 
 
 def test_employee_and_attendance_manager_cannot_access_inventory(client: TestClient, session_factory) -> None:
@@ -173,6 +202,7 @@ def test_create_bao_kg_product(client: TestClient, session_factory) -> None:
     assert product["product_code_base"] == "GAO-01"
     assert product["unit_mode"] == "BAO_KG"
     assert product["balance"]["on_hand_bao_decimal"] in ("0.000", "0")
+    assert product["balance"]["derived_kg_balance"] in ("0.000", "0")
 
 
 def test_create_bich_product(client: TestClient, session_factory) -> None:
@@ -288,4 +318,132 @@ def test_stock_increase_decrease_and_balance_endpoint(client: TestClient, sessio
     assert increase_response.status_code == 200
     assert decrease_response.status_code == 200
     assert decrease_response.json()["on_hand_bao_decimal"] == "-1.000"
+    assert decrease_response.json()["derived_kg_balance"] == "-25.000"
     assert balance_response.json()["on_hand_bao_decimal"] == "-1.000"
+
+
+def test_stock_set_endpoint_computes_delta_and_movement(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product = create_product(client, headers)
+    client.post(
+        f"/api/inventory/products/{product['id']}/stock/increase",
+        headers=headers,
+        json={"unit_type": "BAO", "quantity": "2", "note": "Initial"},
+    )
+
+    response = client.post(
+        f"/api/inventory/products/{product['id']}/stock/set",
+        headers=headers,
+        json={"unit_type": "KG", "target_quantity": "25", "note": "Kiem kho thuc te"},
+    )
+    movements = client.get(f"/api/inventory/products/{product['id']}/movements", headers=headers).json()
+
+    assert response.status_code == 200
+    assert response.json()["on_hand_bao_decimal"] == "1.000"
+    assert response.json()["derived_kg_balance"] == "25.000"
+    assert movements[0]["movement_type"] == "STOCK_SET"
+    assert movements[0]["quantity_delta"] == "-25.000"
+    assert movements[0]["unit_type"] == "KG"
+    assert movements[0]["balance_after"] == "1.000"
+
+
+def test_stock_set_allows_negative_target(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product = create_product(client, headers)
+
+    response = client.post(
+        f"/api/inventory/products/{product['id']}/stock/set",
+        headers=headers,
+        json={"unit_type": "KG", "target_quantity": "-25", "note": "Kiem kho am"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["on_hand_bao_decimal"] == "-1.000"
+    assert response.json()["derived_kg_balance"] == "-25.000"
+
+
+def test_stock_adjustments_generate_movement_rows(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product = create_product(client, headers)
+
+    client.post(
+        f"/api/inventory/products/{product['id']}/stock/increase",
+        headers=headers,
+        json={"unit_type": "BAO", "quantity": "3", "note": "Nhap kho dau ngay"},
+    )
+    client.post(
+        f"/api/inventory/products/{product['id']}/stock/decrease",
+        headers=headers,
+        json={"unit_type": "BAO", "quantity": "1", "note": "Kiem kho"},
+    )
+
+    response = client.get(f"/api/inventory/products/{product['id']}/movements", headers=headers)
+
+    assert response.status_code == 200
+    rows = response.json()
+    assert [row["movement_type"] for row in rows] == ["STOCK_DECREASE", "STOCK_INCREASE"]
+    assert rows[0]["quantity_delta"] == "-1.000"
+    assert rows[0]["source_type"] == "stock_adjustment"
+    assert rows[0]["note"] == "Kiem kho"
+    assert rows[1]["balance_after"] in ("3.000", "3")
+
+
+def test_sales_and_returns_generate_visible_movement_rows_sorted_newest_first(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product = create_product(client, headers)
+    sale_response = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(product["id"], invoice_datetime=datetime(2026, 5, 17, 9, 0, tzinfo=timezone.utc)),
+    )
+    return_response = client.post(
+        "/api/returns",
+        headers=headers,
+        json=return_payload(product["id"], return_datetime=datetime(2026, 5, 18, 9, 0, tzinfo=timezone.utc)),
+    )
+
+    response = client.get(f"/api/inventory/products/{product['id']}/movements", headers=headers)
+
+    assert sale_response.status_code == 201
+    assert return_response.status_code == 201
+    assert response.status_code == 200
+    rows = response.json()
+    assert [row["movement_type"] for row in rows] == ["RETURN", "SALE"]
+    assert rows[0]["quantity_delta"] == "1.000"
+    assert rows[0]["source_type"] == "return"
+    assert rows[0]["source_id"] == return_response.json()["id"]
+    assert rows[1]["quantity_delta"] == "-1.000"
+    assert rows[1]["source_type"] == "invoice"
+    assert rows[1]["source_id"] == sale_response.json()["id"]
+
+
+def test_mixed_inventory_movements_return_200_and_newest_first(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product = create_product(client, headers)
+    sale_response = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(product["id"], invoice_datetime=datetime(2026, 5, 17, 9, 0, tzinfo=timezone.utc)),
+    )
+    return_response = client.post(
+        "/api/returns",
+        headers=headers,
+        json=return_payload(product["id"], return_datetime=datetime(2026, 5, 18, 9, 0, tzinfo=timezone.utc)),
+    )
+    stock_response = client.post(
+        f"/api/inventory/products/{product['id']}/stock/increase",
+        headers=headers,
+        json={"unit_type": "BAO", "quantity": "2", "note": "Nhap bo sung"},
+    )
+
+    response = client.get(f"/api/inventory/products/{product['id']}/movements", headers=headers)
+
+    assert sale_response.status_code == 201
+    assert return_response.status_code == 201
+    assert stock_response.status_code == 200
+    assert response.status_code == 200
+    rows = response.json()
+    assert [row["movement_type"] for row in rows] == ["STOCK_INCREASE", "RETURN", "SALE"]
+    assert rows[0]["balance_after"] is not None
+    assert rows[1]["balance_after"] is None
+    assert rows[2]["balance_after"] is None

@@ -17,7 +17,7 @@ export function ReturnCreatePage() {
         isSubmitting={createReturn.isPending}
         onSubmit={async (payload) => {
           const returnInvoice = await createReturn.mutateAsync(payload);
-          navigate(`/returns/${returnInvoice.id}`);
+          navigate(`/returns/${returnInvoice.id}`, { state: { returnMessage: "Da tao phieu tra." } });
         }}
       />
     </>

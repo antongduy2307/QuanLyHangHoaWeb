@@ -207,7 +207,11 @@ def test_postgres_protected_sales_route_effects(pg_client: TestClient, postgres_
         for row in postgres_session.scalars(
             select(CustomerBalanceLedger)
             .where(CustomerBalanceLedger.customer_id == customer["id"])
-            .order_by(CustomerBalanceLedger.display_order, CustomerBalanceLedger.id)
+            .order_by(
+                CustomerBalanceLedger.transaction_datetime,
+                CustomerBalanceLedger.display_order,
+                CustomerBalanceLedger.id,
+            )
         ).all()
     ]
     assert balance.on_hand_bao_decimal == 2
@@ -264,7 +268,11 @@ def test_postgres_protected_returns_route_effects(pg_client: TestClient, postgre
         for row in postgres_session.scalars(
             select(CustomerBalanceLedger)
             .where(CustomerBalanceLedger.customer_id == customer["id"])
-            .order_by(CustomerBalanceLedger.display_order, CustomerBalanceLedger.id)
+            .order_by(
+                CustomerBalanceLedger.transaction_datetime,
+                CustomerBalanceLedger.display_order,
+                CustomerBalanceLedger.id,
+            )
         ).all()
     ]
     assert balance.on_hand_bao_decimal == 3

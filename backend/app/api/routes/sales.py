@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Callable, TypeVar
 
 from fastapi import APIRouter, Depends, Response, status
@@ -85,8 +86,16 @@ def list_invoices(
     _: SalesReadDep,
     customer_id: int | None = None,
     search: str = "",
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
 ) -> list[InvoiceResponse]:
-    invoices = SalesService().list_invoices(session, customer_id=customer_id, search=search)
+    invoices = SalesService().list_invoices(
+        session,
+        customer_id=customer_id,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+    )
     return [_invoice_response(invoice) for invoice in invoices]
 
 
@@ -126,13 +135,14 @@ def update_invoice(
     service = SalesService()
 
     def operation() -> int:
+        current = service.get_invoice(session, invoice_id)
         invoice = service.update_invoice(
             session,
             invoice_id,
             customer_id=payload.customer_id,
             invoice_datetime=payload.invoice_datetime,
             items=_item_inputs(payload),
-            paid_amount=payload.paid_amount,
+            paid_amount=current.paid_amount if payload.paid_amount is None else payload.paid_amount,
             customer_snapshot_name=payload.customer_snapshot_name,
             payment_method=payload.payment_method,
             note=payload.note,

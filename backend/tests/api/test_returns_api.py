@@ -297,3 +297,34 @@ def test_get_and_list_returns(client: TestClient, session_factory) -> None:
     assert get_response.status_code == 200
     assert get_response.json()["id"] == return_invoice["id"]
     assert [row["id"] for row in list_response.json()] == [return_invoice["id"]]
+
+
+def test_list_returns_supports_backend_search_and_date_filters(client: TestClient, session_factory) -> None:
+    product_id = seed_product(session_factory)
+    customer_id = seed_customer(session_factory, total_sales="200")
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    invoice = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(product_id, customer_id=customer_id, quantity="2", paid="0"),
+    ).json()
+    older_payload = quick_return_payload(product_id, quantity="1")
+    older_payload["customer_snapshot_name"] = "Khach Cu"
+    older_payload["return_datetime"] = datetime(2025, 1, 1, 10, 0, tzinfo=timezone.utc).isoformat()
+    older_return = client.post("/api/returns", headers=headers, json=older_payload).json()
+    linked_return = client.post("/api/returns", headers=headers, json=linked_return_payload(invoice, quantity="1")).json()
+
+    by_code = client.get("/api/returns?search=TR20260104", headers=headers)
+    by_customer = client.get("/api/returns?search=return%20customer", headers=headers)
+    by_invoice = client.get(f"/api/returns?search={invoice['invoice_code']}", headers=headers)
+    by_date = client.get(
+        "/api/returns?date_from=2026-01-01T00:00:00%2B00:00&date_to=2026-12-31T23:59:59%2B00:00",
+        headers=headers,
+    )
+
+    assert by_code.status_code == 200
+    assert [row["id"] for row in by_code.json()] == [linked_return["id"]]
+    assert [row["id"] for row in by_customer.json()] == [linked_return["id"]]
+    assert [row["id"] for row in by_invoice.json()] == [linked_return["id"]]
+    assert [row["id"] for row in by_date.json()] == [linked_return["id"]]
+    assert older_return["id"] != linked_return["id"]

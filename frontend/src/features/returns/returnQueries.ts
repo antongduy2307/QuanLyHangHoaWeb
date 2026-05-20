@@ -8,14 +8,15 @@ import { invoiceKeys } from "../sales/invoiceQueries";
 
 export const returnKeys = {
   all: ["returns"] as const,
-  list: () => [...returnKeys.all, "list"] as const,
+  list: (search: string, dateFrom: string, dateTo: string) =>
+    [...returnKeys.all, "list", { search, dateFrom, dateTo }] as const,
   detail: (returnId: number) => [...returnKeys.all, returnId] as const,
 };
 
-export function useReturns() {
+export function useReturns(search = "", dateFrom = "", dateTo = "") {
   return useQuery({
-    queryKey: returnKeys.list(),
-    queryFn: listReturns,
+    queryKey: returnKeys.list(search, dateFrom, dateTo),
+    queryFn: () => listReturns({ search, dateFrom, dateTo }),
   });
 }
 

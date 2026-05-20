@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from threading import Lock
+from time import time_ns
 
 from sqlalchemy.orm import Session
 
@@ -35,6 +37,24 @@ class DebtPaymentResult:
     @property
     def ref_id(self) -> int:
         return self.payment.id
+
+
+@dataclass(frozen=True, slots=True)
+class BalanceAdjustmentResult:
+    customer: Customer
+    ledger: CustomerBalanceLedger
+
+    @property
+    def customer_id(self) -> int:
+        return self.customer.id
+
+    @property
+    def ledger_id(self) -> int:
+        return self.ledger.id
+
+
+_REF_ID_LOCK = Lock()
+_LAST_GENERATED_REF_ID = 0
 
 
 class CustomerService:
@@ -82,6 +102,38 @@ class CustomerService:
             self.recompute_customer_balance(session, customer.id)
         session.flush()
         return customer
+
+    def adjust_customer_balance(
+        self,
+        session: Session,
+        customer_id: int,
+        *,
+        target_balance: Decimal | int | str,
+        note: str | None = None,
+        adjustment_datetime: datetime | None = None,
+    ) -> BalanceAdjustmentResult:
+        customer = self._repository.get_customer_for_update(session, customer_id)
+        normalized_target = to_money(target_balance)
+        amount_delta = normalized_target - customer.current_balance
+        if amount_delta == Decimal("0"):
+            raise ValidationError("Target balance is unchanged.")
+        effective_datetime = adjustment_datetime
+        if effective_datetime is None and not self._repository.customer_has_trade_or_debt_history(session, customer.id):
+            effective_datetime = OPENING_BALANCE_DATETIME
+
+        ledger = self._append_balance_ledger(
+            session,
+            customer,
+            amount_delta=amount_delta,
+            event_type="BALANCE_ADJUSTMENT",
+            ref_type="BALANCE_ADJUSTMENT",
+            ref_id=self._generate_ref_id(),
+            note=normalize_optional_text(note) or "Balance adjustment",
+            transaction_datetime=effective_datetime,
+        )
+        session.flush()
+        self.recompute_customer_balance(session, customer.id)
+        return BalanceAdjustmentResult(customer=customer, ledger=ledger)
 
     def update_customer(
         self,
@@ -284,3 +336,13 @@ class CustomerService:
         if not payment_ledgers:
             raise NotFoundError("Debt payment ledger rows were not found.")
         return payment_ledgers[-1]
+
+    @staticmethod
+    def _generate_ref_id() -> int:
+        global _LAST_GENERATED_REF_ID
+        with _REF_ID_LOCK:
+            generated = time_ns()
+            if generated <= _LAST_GENERATED_REF_ID:
+                generated = _LAST_GENERATED_REF_ID + 1
+            _LAST_GENERATED_REF_ID = generated
+            return generated

@@ -2,8 +2,9 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
-import type { Invoice, Product, ReturnInvoice, ReturnInvoiceCreatePayload, UnitType } from "../../api/types";
-import { unitLabel } from "../../domain/documents";
+import type { Customer, Invoice, InvoiceItem, Product, ReturnInvoice, ReturnInvoiceCreatePayload, UnitType } from "../../api/types";
+import { formatDateTime } from "../../domain/dates";
+import { returnHandlingModeLabel, unitLabel } from "../../domain/documents";
 import { formatMoney } from "../../domain/money";
 import { useCustomers } from "../customers/customerQueries";
 import { useProducts } from "../inventory/productQueries";
@@ -15,6 +16,9 @@ import {
   estimateReturnTotal,
   formatCents,
   initialReturnFormState,
+  isNonNegativeMoney,
+  isPositiveDecimal,
+  lineEstimateCents,
   newReturnItem,
   returnToFormState,
   toReturnCreatePayload,
@@ -35,8 +39,103 @@ function productLabel(product: Product) {
   return `${product.product_code_base} - ${product.product_name}`;
 }
 
+function productPriceLabel(product: Product) {
+  const enabledPrices = product.prices
+    .filter((price) => price.is_enabled)
+    .map((price) => `${unitLabel(price.unit_type)}: ${price.price}`)
+    .join(" | ");
+  return enabledPrices || "Chua co gia dang bat";
+}
+
+function customerLabel(customer: Customer) {
+  return customer.phone ? `${customer.customer_name} - ${customer.phone}` : customer.customer_name;
+}
+
 function invoiceLabel(invoice: Invoice) {
-  return `${invoice.invoice_code} - ${invoice.customer_snapshot_name}`;
+  return `${invoice.invoice_code} - ${invoice.customer_snapshot_name} - ${formatDateTime(invoice.invoice_datetime)} - ${formatMoney(invoice.total_amount)}`;
+}
+
+function sourceItemLabel(sourceItem: InvoiceItem) {
+  return `${sourceItem.product_code_snapshot} - ${sourceItem.product_name_snapshot} - ${unitLabel(sourceItem.unit_type)} - ${sourceItem.quantity} - ${formatMoney(sourceItem.line_total)}`;
+}
+
+function mergeHistoricalProducts(activeProducts: Product[], initialReturn?: ReturnInvoice | null) {
+  if (!initialReturn) {
+    return activeProducts;
+  }
+  const productById = new Map(activeProducts.map((product) => [product.id, product]));
+  const merged = [...activeProducts];
+  for (const item of initialReturn.items) {
+    if (!productById.has(item.product_id)) {
+      merged.push({
+        id: item.product_id,
+        product_code_base: item.product_code_snapshot,
+        product_name: item.product_name_snapshot,
+        unit_mode: item.unit_type === "BICH" ? "BICH" : "BAO_KG",
+        is_active: false,
+        created_at: initialReturn.created_at,
+        updated_at: initialReturn.updated_at,
+        prices: [{ unit_type: item.unit_type, price: item.unit_price, is_enabled: true }],
+        balance: null,
+      });
+    }
+  }
+  return merged;
+}
+
+function mergeHistoricalCustomers(activeCustomers: Customer[], initialReturn?: ReturnInvoice | null) {
+  if (!initialReturn?.customer_id || activeCustomers.some((customer) => customer.id === initialReturn.customer_id)) {
+    return activeCustomers;
+  }
+  return [
+    ...activeCustomers,
+    {
+      id: initialReturn.customer_id,
+      customer_name: initialReturn.customer_snapshot_name,
+      phone: null,
+      address: null,
+      note: null,
+      current_balance: "0",
+      total_sales: "0",
+      is_walk_in: false,
+      is_active: false,
+      created_at: initialReturn.created_at,
+      updated_at: initialReturn.updated_at,
+    },
+  ];
+}
+
+function mergeHistoricalInvoices(activeInvoices: Invoice[], initialReturn?: ReturnInvoice | null) {
+  if (!initialReturn?.source_invoice_id || activeInvoices.some((invoice) => invoice.id === initialReturn.source_invoice_id)) {
+    return activeInvoices;
+  }
+  return [
+    ...activeInvoices,
+    {
+      id: initialReturn.source_invoice_id,
+      invoice_code: `#${initialReturn.source_invoice_id}`,
+      customer_id: initialReturn.customer_id,
+      customer_snapshot_name: initialReturn.customer_snapshot_name,
+      invoice_datetime: initialReturn.return_datetime,
+      total_amount: initialReturn.total_amount,
+      paid_amount: "0",
+      payment_method: null,
+      status: "COMPLETED",
+      note: initialReturn.note,
+      created_at: initialReturn.created_at,
+      updated_at: initialReturn.updated_at,
+      items: initialReturn.items.map((item) => ({
+        id: item.source_invoice_item_id ?? item.id,
+        product_id: item.product_id,
+        unit_type: item.unit_type,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        line_total: item.line_total,
+        product_code_snapshot: item.product_code_snapshot,
+        product_name_snapshot: item.product_name_snapshot,
+      })),
+    },
+  ];
 }
 
 export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, errorMessage, onSubmit }: ReturnFormProps) {
@@ -48,12 +147,13 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
   const productsQuery = useProducts("");
   const customersQuery = useCustomers("", false);
   const invoicesQuery = useInvoices();
-  const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
-  const customers = customersQuery.data ?? [];
-  const invoices = invoicesQuery.data ?? [];
+  const products = useMemo(() => mergeHistoricalProducts(productsQuery.data ?? [], initialReturn), [initialReturn, productsQuery.data]);
+  const customers = useMemo(() => mergeHistoricalCustomers(customersQuery.data ?? [], initialReturn), [customersQuery.data, initialReturn]);
+  const invoices = useMemo(() => mergeHistoricalInvoices(invoicesQuery.data ?? [], initialReturn), [initialReturn, invoicesQuery.data]);
   const productById = useMemo(() => new Map(products.map((product) => [String(product.id), product])), [products]);
   const sourceInvoice = invoices.find((invoice) => String(invoice.id) === formState.sourceInvoiceId);
   const estimatedTotal = estimateReturnTotal(formState);
+  const firstProduct = products[0];
 
   function updateField(field: keyof Pick<ReturnFormState, "return_datetime" | "customer_snapshot_name" | "handling_mode" | "note">, value: string) {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -144,6 +244,25 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
     }
   }
 
+  function addReturnItem(prefillFirstProduct = false) {
+    const item = newReturnItem();
+    if (!prefillFirstProduct || !firstProduct) {
+      setFormState((current) => ({ ...current, items: [...current.items, item] }));
+      return;
+    }
+    setFormState((current) => ({ ...current, items: [...current.items, applyProductToReturnItem(item, firstProduct, String(firstProduct.id))] }));
+  }
+
+  function handlingModeHelpText() {
+    if (formState.returnMode === "quick" && formState.customerMode === "walk_in") {
+      return "Khach le chi duoc hoan tien ngay.";
+    }
+    if (formState.handling_mode === "STORE_CREDIT") {
+      return "Tru cong no can khach hang tren phieu tra.";
+    }
+    return "Backend van la nguon tinh ton kho va cong no chinh xac.";
+  }
+
   if (productsQuery.isLoading || customersQuery.isLoading || invoicesQuery.isLoading) {
     return <p className="state-message">Dang tai du lieu phieu tra...</p>;
   }
@@ -201,7 +320,10 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
             </select>
             {fieldErrors.sourceInvoiceId ? <span className="field-error">{fieldErrors.sourceInvoiceId}</span> : null}
           </label>
-          <p className="muted-text">Khach hang: {(sourceInvoice?.customer_snapshot_name ?? formState.customer_snapshot_name) || "-"}</p>
+          <p className="muted-text">
+            Khach hang tu hoa don goc: {(sourceInvoice?.customer_snapshot_name ?? formState.customer_snapshot_name) || "-"}
+            {sourceInvoice ? ` | Tong hoa don: ${formatMoney(sourceInvoice.total_amount)}` : ""}
+          </p>
         </>
       ) : (
         <>
@@ -231,10 +353,10 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
             <label>
               Chon khach hang
               <select value={formState.customerId} onChange={(event) => updateCustomer(event.target.value)}>
-                <option value="">Chon khach hang</option>
+                  <option value="">Chon khach hang</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.customer_name}
+                    {customerLabel(customer)}
                   </option>
                 ))}
               </select>
@@ -258,6 +380,9 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
         </select>
         {fieldErrors.handling_mode ? <span className="field-error">{fieldErrors.handling_mode}</span> : null}
       </label>
+      <p className="muted-text">
+        {returnHandlingModeLabel(formState.handling_mode)}: {handlingModeHelpText()}
+      </p>
 
       <label>
         Ghi chu
@@ -271,6 +396,10 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
           const product = productById.get(item.productId);
           const unitChoices = product ? enabledUnitsForProduct(product) : [];
           const prefix = `items.${index}`;
+          const lineEstimate =
+            isPositiveDecimal(item.quantity) && isNonNegativeMoney(item.unitPrice)
+              ? formatMoney(formatCents(lineEstimateCents(item.quantity, item.unitPrice)))
+              : "-";
           return (
             <div className="line-item-panel" key={item.rowId}>
               {formState.returnMode === "linked" ? (
@@ -280,7 +409,7 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
                     <option value="">Chon dong hoa don goc</option>
                     {sourceInvoice?.items.map((sourceItem) => (
                       <option key={sourceItem.id} value={sourceItem.id}>
-                        #{sourceItem.id} - {sourceItem.product_code_snapshot} - {sourceItem.product_name_snapshot}
+                        {sourceItemLabel(sourceItem)}
                       </option>
                     ))}
                   </select>
@@ -296,13 +425,17 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
                   <option value="">Chon hang hoa</option>
                   {products.map((candidate) => (
                     <option key={candidate.id} value={candidate.id}>
-                      {productLabel(candidate)}
+                      {productLabel(candidate)} ({candidate.unit_mode}; {productPriceLabel(candidate)})
                     </option>
                   ))}
                 </select>
                 {fieldErrors[`${prefix}.productId`] ? <span className="field-error">{fieldErrors[`${prefix}.productId`]}</span> : null}
               </label>
-              {product ? <p className="muted-text">Da chon: {productLabel(product)}</p> : null}
+              {product ? (
+                <p className="muted-text">
+                  Da chon: {productLabel(product)} | Don vi: {product.unit_mode} | Gia: {productPriceLabel(product)}
+                </p>
+              ) : null}
 
               <label>
                 Don vi
@@ -337,6 +470,8 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
                 {fieldErrors[`${prefix}.unitPrice`] ? <span className="field-error">{fieldErrors[`${prefix}.unitPrice`]}</span> : null}
               </label>
 
+              <p className="state-message">Tam tinh dong: {lineEstimate}</p>
+
               <button
                 className="secondary-link"
                 type="button"
@@ -350,7 +485,7 @@ export function ReturnForm({ initialReturn, mode, isSubmitting, submitLabel, err
         <button
           className="secondary-button"
           type="button"
-          onClick={() => setFormState((current) => ({ ...current, items: [...current.items, newReturnItem()] }))}
+          onClick={() => addReturnItem(true)}
         >
           Them dong hang
         </button>

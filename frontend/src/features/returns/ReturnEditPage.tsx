@@ -38,7 +38,7 @@ export function ReturnEditPage() {
           errorMessage={isApiError(updateReturn.error) ? updateReturn.error.message : null}
           onSubmit={async (payload) => {
             const returnInvoice = await updateReturn.mutateAsync(payload);
-            navigate(`/returns/${returnInvoice.id}`);
+            navigate(`/returns/${returnInvoice.id}`, { state: { returnMessage: "Da cap nhat phieu tra." } });
           }}
         />
       ) : null}

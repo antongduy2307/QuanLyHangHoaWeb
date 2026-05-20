@@ -49,8 +49,14 @@ class InvoiceCreateRequest(BaseModel):
     note: str | None = None
 
 
-class InvoiceUpdateRequest(InvoiceCreateRequest):
-    pass
+class InvoiceUpdateRequest(BaseModel):
+    customer_id: int | None = None
+    customer_snapshot_name: str | None = None
+    invoice_datetime: datetime
+    items: list[InvoiceItemRequest] = Field(min_length=1)
+    paid_amount: Decimal | None = None
+    payment_method: PaymentMethod | None = None
+    note: str | None = None
 
 
 class InvoiceItemResponse(BaseModel):

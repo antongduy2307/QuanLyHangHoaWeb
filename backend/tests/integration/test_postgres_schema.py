@@ -36,6 +36,18 @@ def test_alembic_upgrade_head_creates_sales_returns_schema(postgres_session: Ses
     )
 
 
+def test_alembic_upgrade_head_keeps_stock_set_compatible_stock_adjustments(postgres_session: Session) -> None:
+    inspector = inspect(postgres_session.bind)
+    table_names = set(inspector.get_table_names())
+
+    assert "stock_adjustments" in table_names
+    assert {"product_id", "movement_type", "unit_type", "quantity_delta", "balance_after"}.issubset(
+        {column["name"] for column in inspector.get_columns("stock_adjustments")}
+    )
+    check_constraints = inspector.get_check_constraints("stock_adjustments")
+    assert any("STOCK_SET" in (constraint.get("sqltext") or "") for constraint in check_constraints)
+
+
 def test_alembic_upgrade_head_creates_auth_schema(postgres_session: Session) -> None:
     inspector = inspect(postgres_session.bind)
     table_names = set(inspector.get_table_names())

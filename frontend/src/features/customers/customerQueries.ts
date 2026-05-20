@@ -1,29 +1,38 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  adjustCustomerBalance,
   createCustomer,
   createDebtPayment,
+  deleteCustomer,
   deleteDebtPayment,
   getCustomer,
   getCustomerLedger,
   listCustomers,
   listDebtPayments,
+  updateCustomer,
   updateDebtPayment,
 } from "../../api/customers";
-import type { CustomerCreatePayload, DebtPaymentPayload } from "../../api/types";
+import type {
+  BalanceAdjustmentPayload,
+  CustomerCreatePayload,
+  CustomerUpdatePayload,
+  DebtPaymentPayload,
+} from "../../api/types";
 
 export const customerKeys = {
   all: ["customers"] as const,
-  list: (search: string, onlyPositiveDebt: boolean) => [...customerKeys.all, { search, onlyPositiveDebt }] as const,
+  list: (search: string, onlyPositiveDebt: boolean, includeInactive: boolean) =>
+    [...customerKeys.all, "list", { search, onlyPositiveDebt, includeInactive }] as const,
   detail: (customerId: number) => [...customerKeys.all, customerId] as const,
   ledger: (customerId: number) => [...customerKeys.detail(customerId), "ledger"] as const,
   debtPayments: (customerId: number) => [...customerKeys.detail(customerId), "debt-payments"] as const,
 };
 
-export function useCustomers(search: string, onlyPositiveDebt: boolean) {
+export function useCustomers(search: string, onlyPositiveDebt: boolean, includeInactive = false) {
   return useQuery({
-    queryKey: customerKeys.list(search, onlyPositiveDebt),
-    queryFn: () => listCustomers({ search, onlyPositiveDebt }),
+    queryKey: customerKeys.list(search, onlyPositiveDebt, includeInactive),
+    queryFn: () => listCustomers({ search, onlyPositiveDebt, includeInactive }),
   });
 }
 
@@ -67,6 +76,30 @@ export function useCreateCustomer() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: customerKeys.all });
     },
+  });
+}
+
+export function useUpdateCustomer(customerId: number) {
+  const invalidateCustomerDetail = useInvalidateCustomerDetail(customerId);
+  return useMutation({
+    mutationFn: (payload: CustomerUpdatePayload) => updateCustomer(customerId, payload),
+    onSuccess: invalidateCustomerDetail,
+  });
+}
+
+export function useDeleteCustomer(customerId: number) {
+  const invalidateCustomerDetail = useInvalidateCustomerDetail(customerId);
+  return useMutation({
+    mutationFn: () => deleteCustomer(customerId),
+    onSuccess: invalidateCustomerDetail,
+  });
+}
+
+export function useAdjustCustomerBalance(customerId: number) {
+  const invalidateCustomerDetail = useInvalidateCustomerDetail(customerId);
+  return useMutation({
+    mutationFn: (payload: BalanceAdjustmentPayload) => adjustCustomerBalance(customerId, payload),
+    onSuccess: invalidateCustomerDetail,
   });
 }
 

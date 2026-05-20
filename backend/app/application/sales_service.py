@@ -69,6 +69,8 @@ class SalesService:
         customer = None
         if customer_id is not None:
             customer = self._customer_repository.get_customer_for_update(session, customer_id)
+            if not customer.is_active:
+                raise ValidationError("Inactive customers cannot be used for new invoices.")
             snapshot_name = customer_snapshot_name.strip() if customer_snapshot_name else customer.customer_name
         else:
             snapshot_name = (customer_snapshot_name or "Khach le").strip()
@@ -95,7 +97,7 @@ class SalesService:
         session.flush()
 
         for line in normalized_lines:
-            self._inventory_service.decrease_stock(session, line.product.id, line.quantity, line.unit_type)
+            self._inventory_service.decrease_stock(session, line.product.id, line.quantity, line.unit_type, record_adjustment=False)
             invoice.items.append(
                 InvoiceItem(
                     invoice_id=invoice.id,
@@ -156,8 +158,22 @@ class SalesService:
     def get_invoice(self, session: Session, invoice_id: int) -> Invoice:
         return self._repository.get_invoice(session, invoice_id)
 
-    def list_invoices(self, session: Session, *, customer_id: int | None = None, search: str = "") -> list[Invoice]:
-        return self._repository.list_invoices(session, customer_id=customer_id, search=search)
+    def list_invoices(
+        self,
+        session: Session,
+        *,
+        customer_id: int | None = None,
+        search: str = "",
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> list[Invoice]:
+        return self._repository.list_invoices(
+            session,
+            customer_id=customer_id,
+            search=search,
+            date_from=date_from,
+            date_to=date_to,
+        )
 
     def delete_invoice(self, session: Session, invoice_id: int) -> None:
         invoice = self._repository.get_invoice_for_update(session, invoice_id)
@@ -194,7 +210,13 @@ class SalesService:
         if not snapshot_name:
             raise ValidationError("customer_snapshot_name is required.")
 
-        normalized_lines = self._normalize_lines(session, items, require_active_product=True)
+        existing_product_ids = {item.product_id for item in old_items}
+        normalized_lines = self._normalize_lines(
+            session,
+            items,
+            require_active_product=True,
+            allowed_inactive_product_ids=existing_product_ids,
+        )
         total_amount = sum((line.line_total for line in normalized_lines), start=Decimal("0"))
         if new_customer is None and normalized_paid < total_amount:
             raise ValidationError("Walk-in invoices must be fully paid.")
@@ -216,7 +238,7 @@ class SalesService:
         session.flush()
 
         for line in normalized_lines:
-            self._inventory_service.decrease_stock(session, line.product.id, line.quantity, line.unit_type)
+            self._inventory_service.decrease_stock(session, line.product.id, line.quantity, line.unit_type, record_adjustment=False)
             invoice.items.append(
                 InvoiceItem(
                     invoice_id=invoice.id,
@@ -242,7 +264,7 @@ class SalesService:
         items: list[InvoiceItem],
     ) -> None:
         for item in sorted(items, key=lambda row: row.product_id):
-            self._inventory_service.increase_stock(session, item.product_id, item.quantity, item.unit_type)
+            self._inventory_service.increase_stock(session, item.product_id, item.quantity, item.unit_type, record_adjustment=False)
 
         if invoice.customer_id is not None:
             customer = self._customer_repository.get_customer_for_update(session, invoice.customer_id)
@@ -324,11 +346,13 @@ class SalesService:
         items: list[InvoiceItemInput] | tuple[InvoiceItemInput, ...],
         *,
         require_active_product: bool,
+        allowed_inactive_product_ids: set[int] | None = None,
     ) -> list[NormalizedInvoiceLine]:
         normalized_lines: list[NormalizedInvoiceLine] = []
+        allowed_inactive_product_ids = allowed_inactive_product_ids or set()
         for item in items:
             product = self._inventory_repository.get_product_for_update(session, item.product_id)
-            if require_active_product and not product.is_active:
+            if require_active_product and not product.is_active and product.id not in allowed_inactive_product_ids:
                 raise ValidationError("Inactive products cannot be used for new invoices.")
             mode = UnitMode(product.unit_mode)
             unit_type = coerce_unit_type(item.unit_type)

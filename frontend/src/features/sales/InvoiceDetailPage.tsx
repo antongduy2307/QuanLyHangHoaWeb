@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import { useAuth } from "../../auth/useAuth";
@@ -16,6 +16,8 @@ export function InvoiceDetailPage() {
   const parsedInvoiceId = Number(invoiceId);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { invoiceMessage?: string } | null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const invoiceQuery = useInvoice(parsedInvoiceId);
   const deleteInvoice = useDeleteInvoice(parsedInvoiceId);
@@ -33,7 +35,7 @@ export function InvoiceDetailPage() {
     setDeleteError(null);
     try {
       await deleteInvoice.mutateAsync();
-      navigate("/sales/invoices");
+      navigate("/sales/invoices", { state: { invoiceMessage: "Da xoa hoa don." } });
     } catch (error) {
       setDeleteError(isApiError(error) ? error.message : "Khong the xoa hoa don.");
     }
@@ -61,6 +63,7 @@ export function InvoiceDetailPage() {
       </div>
 
       {invoiceQuery.isLoading ? <p className="state-message">Dang tai chi tiet hoa don...</p> : null}
+      {locationState?.invoiceMessage ? <p className="state-message">{locationState.invoiceMessage}</p> : null}
       {invoiceQuery.isError ? <p className="state-message error-message">{errorMessage}</p> : null}
       {deleteError ? <p className="state-message error-message">{deleteError}</p> : null}
       {invoiceQuery.isSuccess ? (
@@ -89,6 +92,14 @@ export function InvoiceDetailPage() {
             <div className="summary-card">
               <span>Trang thai</span>
               <strong>{invoiceStatusLabel(invoiceQuery.data.status)}</strong>
+            </div>
+            <div className="summary-card">
+              <span>Phuong thuc</span>
+              <strong>{invoiceQuery.data.payment_method || "-"}</strong>
+            </div>
+            <div className="summary-card">
+              <span>Con lai</span>
+              <strong>{formatMoney(String(Number(invoiceQuery.data.total_amount) - Number(invoiceQuery.data.paid_amount)))}</strong>
             </div>
             <div className="summary-card wide">
               <span>Ghi chu</span>

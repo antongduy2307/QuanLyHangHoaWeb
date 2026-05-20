@@ -60,6 +60,13 @@ class StockChangeRequest(BaseModel):
     note: str | None = None
 
 
+class StockSetRequest(BaseModel):
+    unit_type: UnitType
+    target_quantity: Decimal
+    note: str | None = None
+    adjustment_datetime: datetime | None = None
+
+
 class ProductPriceResponse(BaseModel):
     unit_type: str
     price: Decimal
@@ -72,6 +79,7 @@ class InventoryBalanceResponse(BaseModel):
     product_id: int
     on_hand_bao_decimal: Decimal | None
     on_hand_bich_integer: Decimal | None
+    derived_kg_balance: Decimal | None = None
     updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -92,3 +100,17 @@ class ProductResponse(BaseModel):
 class ProductDeleteResponse(BaseModel):
     product_id: int
     action: str
+
+
+class InventoryMovementResponse(BaseModel):
+    movement_id: int
+    movement_datetime: datetime
+    movement_type: str
+    quantity_delta: Decimal
+    unit_type: str
+    balance_after: Decimal | None
+    source_type: str
+    source_id: int
+    note: str | None = None
+    actor: str | None = None
+    created_at: datetime

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import type { Product, ProductPrice } from "../../api/types";
@@ -28,13 +28,16 @@ function balanceText(product: Product) {
   if (product.unit_mode === "BICH") {
     return product.balance.on_hand_bich_integer ?? "0";
   }
-  return product.balance.on_hand_bao_decimal ?? "0";
+  return `BAO: ${product.balance.on_hand_bao_decimal ?? "0"} | KG: ${product.balance.derived_kg_balance ?? "0"}`;
 }
 
 export function ProductListPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const productsQuery = useProducts(search);
+  const [includeInactive, setIncludeInactive] = useState(false);
+  const location = useLocation();
+  const locationState = location.state as { productDeleteMessage?: string } | null;
+  const productsQuery = useProducts(search, includeInactive);
   const canCreate = user ? canWriteInventory(user.role) : false;
   const errorMessage = isApiError(productsQuery.error)
     ? productsQuery.error.message
@@ -57,11 +60,20 @@ export function ProductListPage() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Ma hoac ten hang hoa"
+            placeholder="Ten hang hoa"
           />
+        </label>
+        <label className="inline-choice filter-choice">
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(event) => setIncludeInactive(event.target.checked)}
+          />
+          Hien hang ngung dung
         </label>
       </section>
 
+      {locationState?.productDeleteMessage ? <p className="state-message">{locationState.productDeleteMessage}</p> : null}
       {productsQuery.isLoading ? <p className="state-message">Dang tai danh sach hang hoa...</p> : null}
       {productsQuery.isError ? <p className="state-message error-message">{errorMessage}</p> : null}
       {productsQuery.isSuccess && productsQuery.data.length === 0 ? (
@@ -83,7 +95,11 @@ export function ProductListPage() {
             <tbody>
               {productsQuery.data.map((product) => (
                 <tr key={product.id}>
-                  <td>{product.product_code_base}</td>
+                  <td>
+                    <Link className="table-link" to={`/inventory/products/${product.id}`}>
+                      {product.product_code_base}
+                    </Link>
+                  </td>
                   <td>{product.product_name}</td>
                   <td>{product.unit_mode}</td>
                   <td>{product.is_active ? "Dang dung" : "Ngung dung"}</td>

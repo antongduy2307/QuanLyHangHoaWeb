@@ -1,4 +1,4 @@
-import type { CustomerCreatePayload } from "../../api/types";
+import type { Customer, CustomerCreatePayload, CustomerUpdatePayload } from "../../api/types";
 
 export type CustomerFormState = {
   customer_name: string;
@@ -50,5 +50,33 @@ export function toCustomerCreatePayload(state: CustomerFormState): CustomerCreat
     note: optionalText(state.note),
     opening_balance: state.opening_balance.trim() || "0",
     total_sales: state.total_sales.trim() || "0",
+  };
+}
+
+export function customerToEditableFormState(customer: Customer): CustomerFormState {
+  return {
+    customer_name: customer.customer_name,
+    phone: customer.phone ?? "",
+    address: customer.address ?? "",
+    note: customer.note ?? "",
+    opening_balance: customer.current_balance,
+    total_sales: customer.total_sales,
+  };
+}
+
+export function validateCustomerEditableForm(state: CustomerFormState): Pick<CustomerFormErrors, "customer_name"> {
+  const errors: Pick<CustomerFormErrors, "customer_name"> = {};
+  if (!state.customer_name.trim()) {
+    errors.customer_name = "Ten khach hang la bat buoc.";
+  }
+  return errors;
+}
+
+export function toCustomerUpdatePayload(state: CustomerFormState): CustomerUpdatePayload {
+  return {
+    customer_name: state.customer_name.trim(),
+    phone: optionalText(state.phone),
+    address: optionalText(state.address),
+    note: optionalText(state.note),
   };
 }

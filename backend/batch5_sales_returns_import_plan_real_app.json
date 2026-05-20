@@ -1,0 +1,41 @@
+{
+  "source_app_db_path": "validation_sources\\real_app_copy.db",
+  "phase2_mapping_report_path": "batch5_core_import_plan_real_app.json",
+  "dry_run": true,
+  "validation_summary": {
+    "invoice_count": 156,
+    "invoice_item_count": 375,
+    "return_invoice_count": 0,
+    "return_invoice_item_count": 0,
+    "deferred_ledger_count": 173,
+    "error_count": 2,
+    "warning_count": 0
+  },
+  "imported_counts": {
+    "invoices": 156,
+    "invoice_items": 375,
+    "return_invoices": 0,
+    "return_invoice_items": 0,
+    "restored_invoice_charge_ledgers": 134,
+    "restored_invoice_payment_ledgers": 39,
+    "restored_return_ledgers": 0,
+    "created_source_linked_debt_payments": 39
+  },
+  "skipped_ambiguous_deferred_ledgers": 0,
+  "invoice_id_map": {},
+  "return_id_map": {},
+  "source_linked_debt_payment_map": {},
+  "reconciliation": {
+    "customers_checked": 0,
+    "final_balance_matches": 0,
+    "final_balance_mismatches": 0,
+    "inventory_balance_unchanged": true
+  },
+  "warnings": [],
+  "errors": [
+    "Missing product id mappings: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]",
+    "Missing customer id mappings: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 31, 32, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88]"
+  ],
+  "can_import_full_ledger": false,
+  "succeeded": false
+}

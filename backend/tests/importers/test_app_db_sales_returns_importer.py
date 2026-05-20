@@ -4,12 +4,14 @@ import json
 import shutil
 import sqlite3
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.application.document_service import DocumentService
 from app.importers.app_db_core_importer import import_app_db_core
 from app.importers.app_db_sales_returns_importer import import_app_db_sales_returns
 from app.importers.import_app_db_sales_returns import main
@@ -194,7 +196,7 @@ def create_sales_source_db(path: Path, *, include_return: bool = False) -> None:
             conn.execute(
                 """
                 INSERT INTO customer_balance_ledgers VALUES
-                (4, 20, 'RETURN_STORE_CREDIT', 'RETURN', 200, 'RETURN', 200, 20, '-50.00', '80.00', '2026-05-16 10:00:00', '2026-05-16 10:00:00', 'Return')
+                (4, 20, 'RETURN_STORE_CREDIT', 'RETURN', 200, 'RETURN', 200, 0, '-50.00', '80.00', '2026-05-16 10:00:00', '2026-05-16 10:00:00', 'Return')
                 """
             )
         conn.commit()
@@ -335,8 +337,46 @@ def test_zero_returns_accepted_and_minimal_return_fixture_imports(target_session
     assert report.imported_counts.return_invoices == 1
     assert report.imported_counts.return_invoice_items == 1
     assert report.imported_counts.restored_return_ledgers == 1
-    assert target_session.scalar(select(ReturnInvoice.return_code)) == "TR20260516-001"
-    assert target_session.scalar(select(Customer.current_balance)) == 80
+    imported_return = target_session.scalar(select(ReturnInvoice))
+    imported_customer = target_session.scalar(select(Customer))
+    imported_invoice = target_session.scalar(select(Invoice))
+    imported_item = target_session.scalar(select(InvoiceItem))
+    imported_ledger = target_session.scalar(
+        select(CustomerBalanceLedger).where(CustomerBalanceLedger.event_type == "RETURN_STORE_CREDIT")
+    )
+
+    assert imported_return is not None
+    assert imported_customer is not None
+    assert imported_invoice is not None
+    assert imported_item is not None
+    assert imported_ledger is not None
+    assert imported_return.return_code == "TR20260516-001"
+    assert imported_return.customer_id == imported_customer.id
+    assert imported_return.source_invoice_id == imported_invoice.id
+    assert imported_return.items[0].product_id == imported_item.product_id
+    assert imported_return.items[0].source_invoice_item_id == imported_item.id
+    assert imported_ledger.source_ref_type == "RETURN"
+    assert imported_ledger.source_ref_id == imported_return.id
+    assert imported_ledger.ref_type == "RETURN"
+    assert imported_ledger.ref_id == imported_return.id
+    assert imported_ledger.display_order == 0
+    assert imported_customer.current_balance == 80
+    assert imported_customer.total_sales == 0
+    assert report.reconciliation.final_balance_mismatches == 0
+
+
+def test_document_code_generation_remains_safe_after_imported_rows(target_session: Session, work_tmp_path: Path) -> None:
+    source = work_tmp_path / "app.db"
+    core_report_path = work_tmp_path / "core.json"
+    create_sales_source_db(source, include_return=True)
+    import_core_and_write_report(source, target_session, core_report_path)
+
+    report = import_app_db_sales_returns(source, core_import_report_path=core_report_path, target_session=target_session)
+    service = DocumentService()
+
+    assert report.succeeded is True
+    assert service.next_invoice_code(target_session, datetime(2026, 5, 16, 12, 0, 0)) == "HD20260516-002"
+    assert service.next_return_code(target_session, datetime(2026, 5, 16, 12, 0, 0)) == "TR20260516-002"
 
 
 def test_cli_dry_run_writes_json(work_tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

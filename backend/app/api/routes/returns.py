@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Callable, TypeVar
 
 from fastapi import APIRouter, Depends, Response, status
@@ -87,8 +88,16 @@ def list_returns(
     _: ReturnsReadDep,
     customer_id: int | None = None,
     search: str = "",
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
 ) -> list[ReturnResponse]:
-    return_invoices = ReturnService().list_returns(session, customer_id=customer_id, search=search)
+    return_invoices = ReturnService().list_returns(
+        session,
+        customer_id=customer_id,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+    )
     return [_return_response(return_invoice) for return_invoice in return_invoices]
 
 

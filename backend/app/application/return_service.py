@@ -37,7 +37,7 @@ class NormalizedReturnLine:
 
 
 class ReturnService:
-    RETURN_DISPLAY_ORDER = 20
+    RETURN_DISPLAY_ORDER = 0
 
     def __init__(
         self,
@@ -111,7 +111,7 @@ class ReturnService:
         session.flush()
 
         for line in normalized_lines:
-            self._inventory_service.increase_stock(session, line.product.id, line.quantity, line.unit_type)
+            self._inventory_service.increase_stock(session, line.product.id, line.quantity, line.unit_type, record_adjustment=False)
             return_invoice.items.append(
                 ReturnInvoiceItem(
                     return_invoice_id=return_invoice.id,
@@ -158,8 +158,22 @@ class ReturnService:
     def get_return(self, session: Session, return_id: int) -> ReturnInvoice:
         return self._repository.get_return(session, return_id)
 
-    def list_returns(self, session: Session, *, customer_id: int | None = None, search: str = "") -> list[ReturnInvoice]:
-        return self._repository.list_returns(session, customer_id=customer_id, search=search)
+    def list_returns(
+        self,
+        session: Session,
+        *,
+        customer_id: int | None = None,
+        search: str = "",
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> list[ReturnInvoice]:
+        return self._repository.list_returns(
+            session,
+            customer_id=customer_id,
+            search=search,
+            date_from=date_from,
+            date_to=date_to,
+        )
 
     def delete_return(self, session: Session, return_id: int) -> None:
         return_invoice = self._repository.get_return_for_update(session, return_id)
@@ -207,7 +221,11 @@ class ReturnService:
         normalized_lines = (
             self._normalize_linked_lines(session, source_invoice_id, items, exclude_return_id=return_invoice.id)
             if source_invoice is not None
-            else self._normalize_quick_lines(session, items)
+            else self._normalize_quick_lines(
+                session,
+                items,
+                allowed_inactive_product_ids={item.product_id for item in old_items},
+            )
         )
         total_amount = sum((line.line_total for line in normalized_lines), start=Decimal("0"))
 
@@ -228,7 +246,7 @@ class ReturnService:
         session.flush()
 
         for line in normalized_lines:
-            self._inventory_service.increase_stock(session, line.product.id, line.quantity, line.unit_type)
+            self._inventory_service.increase_stock(session, line.product.id, line.quantity, line.unit_type, record_adjustment=False)
             return_invoice.items.append(
                 ReturnInvoiceItem(
                     return_invoice_id=return_invoice.id,
@@ -255,7 +273,7 @@ class ReturnService:
         items: list[ReturnInvoiceItem],
     ) -> None:
         for item in sorted(items, key=lambda row: row.product_id):
-            self._inventory_service.decrease_stock(session, item.product_id, item.quantity, item.unit_type)
+            self._inventory_service.decrease_stock(session, item.product_id, item.quantity, item.unit_type, record_adjustment=False)
 
         if return_invoice.customer_id is not None:
             customer = self._customer_repository.get_customer_for_update(session, return_invoice.customer_id)
@@ -308,13 +326,16 @@ class ReturnService:
         self,
         session: Session,
         items: list[ReturnItemInput] | tuple[ReturnItemInput, ...],
+        *,
+        allowed_inactive_product_ids: set[int] | None = None,
     ) -> list[NormalizedReturnLine]:
         lines: list[NormalizedReturnLine] = []
+        allowed_inactive_product_ids = allowed_inactive_product_ids or set()
         for item in items:
             if item.product_id is None:
                 raise ValidationError("product_id is required for quick returns.")
             product = self._inventory_repository.get_product_for_update(session, item.product_id)
-            if not product.is_active:
+            if not product.is_active and product.id not in allowed_inactive_product_ids:
                 raise ValidationError("Inactive products cannot be used for quick returns.")
             unit_type = coerce_unit_type(item.unit_type)
             validate_unit_type_for_mode(UnitMode(product.unit_mode), unit_type)

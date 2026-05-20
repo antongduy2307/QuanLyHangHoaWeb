@@ -27,6 +27,70 @@ function user(role: UserRole = "owner") {
   };
 }
 
+function dashboardSummaryFixture() {
+  return {
+    total_products: 2,
+    total_customers: 3,
+    total_customer_debt: "85000.00",
+    total_inventory_items: 2,
+    today_sales_total: "250000.00",
+    month_sales_total: "1250000.00",
+    today_return_total: "50000.00",
+    month_return_total: "150000.00",
+    invoice_count_today: 2,
+    positive_debt_customer_count: 1,
+  };
+}
+
+function customerDebtReportFixture() {
+  return [
+    {
+      customer_id: 21,
+      customer_name: "Cong ty Minh Anh",
+      phone: "0909000000",
+      current_balance: "85000.00",
+      total_sales: "500000.00",
+      is_active: true,
+    },
+  ];
+}
+
+function inventorySummaryReportFixture() {
+  return [
+    {
+      product_id: 10,
+      product_code_base: "GAO-01",
+      product_name: "Gao Thom",
+      unit_mode: "BAO_KG",
+      is_active: true,
+      balance_value: "5.000",
+      balance_unit: "BAO",
+      prices: [
+        { unit_type: "BAO", price: "250000.00", is_enabled: true },
+        { unit_type: "KG", price: "10000.00", is_enabled: true },
+      ],
+    },
+  ];
+}
+
+function salesSummaryReportFixture() {
+  return {
+    total_sales: "250000.00",
+    total_paid: "150000.00",
+    invoice_count: 1,
+    average_invoice_total: "250000.00",
+    by_day: [{ date: "2026-05-17", invoice_count: 1, total_sales: "250000.00", total_paid: "150000.00" }],
+  };
+}
+
+function returnsSummaryReportFixture() {
+  return {
+    total_returns: "50000.00",
+    return_count: 1,
+    by_day: [{ date: "2026-05-17", return_count: 1, total_returns: "50000.00" }],
+  };
+}
+
 function mockAuthenticatedSession(role: UserRole = "owner") {
   setRefreshToken("stored-refresh");
   const fetchMock = vi.fn((input: RequestInfo | URL) => {
@@ -46,6 +110,21 @@ function mockAuthenticatedSession(role: UserRole = "owner") {
     }
     if (url.endsWith("/auth/logout")) {
       return Promise.resolve(jsonResponse({ status: "ok" }));
+    }
+    if (url.endsWith("/reports/dashboard-summary")) {
+      return Promise.resolve(jsonResponse(dashboardSummaryFixture()));
+    }
+    if (url.endsWith("/reports/customer-debts")) {
+      return Promise.resolve(jsonResponse(customerDebtReportFixture()));
+    }
+    if (url.endsWith("/reports/inventory-summary")) {
+      return Promise.resolve(jsonResponse(inventorySummaryReportFixture()));
+    }
+    if (url.includes("/reports/sales-summary")) {
+      return Promise.resolve(jsonResponse(salesSummaryReportFixture()));
+    }
+    if (url.includes("/reports/returns-summary")) {
+      return Promise.resolve(jsonResponse(returnsSummaryReportFixture()));
     }
     return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Not found" } }, 404));
   });
@@ -70,6 +149,7 @@ function productFixture() {
       product_id: 10,
       on_hand_bao_decimal: "5.000",
       on_hand_bich_integer: null,
+      derived_kg_balance: "125.000",
       updated_at: "2026-05-17T00:00:00Z",
     },
   };
@@ -89,9 +169,77 @@ function bichProductFixture() {
       product_id: 11,
       on_hand_bao_decimal: null,
       on_hand_bich_integer: "10.000",
+      derived_kg_balance: null,
       updated_at: "2026-05-17T00:00:00Z",
     },
   };
+}
+
+function inactiveProductFixture() {
+  return {
+    ...productFixture(),
+    id: 12,
+    product_code_base: "OLD-01",
+    product_name: "Hang Ngung Dung",
+    is_active: false,
+  };
+}
+
+function inventoryMovementFixture() {
+  return [
+    {
+      movement_id: 92,
+      movement_datetime: "2026-05-17T11:00:00Z",
+      movement_type: "STOCK_SET",
+      quantity_delta: "-25.000",
+      unit_type: "KG",
+      balance_after: "1.000",
+      source_type: "stock_adjustment",
+      source_id: 92,
+      note: "Kiem kho thuc te",
+      actor: null,
+      created_at: "2026-05-17T11:00:00Z",
+    },
+    {
+      movement_id: 81,
+      movement_datetime: "2026-05-17T10:00:00Z",
+      movement_type: "RETURN",
+      quantity_delta: "5.000",
+      unit_type: "KG",
+      balance_after: null,
+      source_type: "return",
+      source_id: 71,
+      note: "Tra mot phan",
+      actor: null,
+      created_at: "2026-05-17T10:00:00Z",
+    },
+    {
+      movement_id: 61,
+      movement_datetime: "2026-05-17T09:00:00Z",
+      movement_type: "SALE",
+      quantity_delta: "-1.000",
+      unit_type: "BAO",
+      balance_after: null,
+      source_type: "invoice",
+      source_id: 51,
+      note: "Giao buoi sang",
+      actor: null,
+      created_at: "2026-05-17T09:00:00Z",
+    },
+    {
+      movement_id: 91,
+      movement_datetime: "2026-05-17T08:00:00Z",
+      movement_type: "STOCK_INCREASE",
+      quantity_delta: "3.000",
+      unit_type: "BAO",
+      balance_after: "8.000",
+      source_type: "stock_adjustment",
+      source_id: 91,
+      note: "Nhap kho dau ngay",
+      actor: null,
+      created_at: "2026-05-17T08:00:00Z",
+    },
+  ];
 }
 
 function mockInventorySession(role: UserRole, products: unknown[] = [productFixture()]) {
@@ -111,8 +259,56 @@ function mockInventorySession(role: UserRole, products: unknown[] = [productFixt
     if (url.endsWith("/auth/me")) {
       return Promise.resolve(jsonResponse(user(role)));
     }
+    if (url.endsWith("/inventory/products/10/movements")) {
+      return Promise.resolve(jsonResponse(inventoryMovementFixture()));
+    }
+    if (url.endsWith("/inventory/products/10/stock/increase") && init?.method === "POST") {
+      return Promise.resolve(
+        jsonResponse({
+          product_id: 10,
+          on_hand_bao_decimal: "6.000",
+          on_hand_bich_integer: null,
+          derived_kg_balance: "150.000",
+          updated_at: "2026-05-17T01:00:00Z",
+        }),
+      );
+    }
+    if (url.endsWith("/inventory/products/10/stock/decrease") && init?.method === "POST") {
+      return Promise.resolve(
+        jsonResponse({
+          product_id: 10,
+          on_hand_bao_decimal: "4.000",
+          on_hand_bich_integer: null,
+          derived_kg_balance: "100.000",
+          updated_at: "2026-05-17T01:00:00Z",
+        }),
+      );
+    }
+    if (url.endsWith("/inventory/products/10/stock/set") && init?.method === "POST") {
+      return Promise.resolve(
+        jsonResponse({
+          product_id: 10,
+          on_hand_bao_decimal: "1.000",
+          on_hand_bich_integer: null,
+          derived_kg_balance: "25.000",
+          updated_at: "2026-05-17T01:00:00Z",
+        }),
+      );
+    }
+    if (url.endsWith("/inventory/products/10") && init?.method === "PATCH") {
+      return Promise.resolve(jsonResponse({ ...productFixture(), product_name: "Gao Cap Nhat" }));
+    }
+    if (url.endsWith("/inventory/products/10") && init?.method === "DELETE") {
+      return Promise.resolve(jsonResponse({ product_id: 10, action: "deactivated" }));
+    }
     if (url.includes("/inventory/products") && init?.method === "POST") {
       return Promise.resolve(jsonResponse(productFixture(), 201));
+    }
+    if (url.endsWith("/inventory/products/10")) {
+      return Promise.resolve(jsonResponse(productFixture()));
+    }
+    if (url.endsWith("/inventory/products/12")) {
+      return Promise.resolve(jsonResponse(inactiveProductFixture()));
     }
     if (url.includes("/inventory/products")) {
       return Promise.resolve(jsonResponse(products));
@@ -136,6 +332,15 @@ function customerFixture() {
     is_active: true,
     created_at: "2026-05-17T00:00:00Z",
     updated_at: "2026-05-17T00:00:00Z",
+  };
+}
+
+function inactiveCustomerFixture() {
+  return {
+    ...customerFixture(),
+    id: 22,
+    customer_name: "Khach Ngung Dung",
+    is_active: false,
   };
 }
 
@@ -198,6 +403,32 @@ function invoiceFixture() {
   };
 }
 
+function olderInvoiceFixture() {
+  return {
+    ...invoiceFixture(),
+    id: 52,
+    invoice_code: "HD20250101-001",
+    customer_snapshot_name: "Khach Cu",
+    invoice_datetime: "2025-01-01T09:00:00Z",
+  };
+}
+
+function inactiveHistoricalInvoiceFixture() {
+  return {
+    ...invoiceFixture(),
+    customer_id: 22,
+    customer_snapshot_name: "Khach Ngung Dung",
+    items: [
+      {
+        ...invoiceFixture().items[0],
+        product_id: 12,
+        product_code_snapshot: "OLD-01",
+        product_name_snapshot: "Hang Ngung Dung",
+      },
+    ],
+  };
+}
+
 function returnFixture() {
   return {
     id: 71,
@@ -228,6 +459,22 @@ function returnFixture() {
   };
 }
 
+function inactiveHistoricalReturnFixture() {
+  return {
+    ...returnFixture(),
+    customer_id: 22,
+    customer_snapshot_name: "Khach Ngung Dung",
+    items: [
+      {
+        ...returnFixture().items[0],
+        product_id: 12,
+        product_code_snapshot: "OLD-01",
+        product_name_snapshot: "Hang Ngung Dung",
+      },
+    ],
+  };
+}
+
 function mockCustomerSession(
   role: UserRole,
   customers: unknown[] = [customerFixture()],
@@ -250,6 +497,25 @@ function mockCustomerSession(
     if (url.endsWith("/auth/me")) {
       return Promise.resolve(jsonResponse(user(role)));
     }
+    if (url.endsWith("/customers/21/balance-adjustments") && init?.method === "POST") {
+      return Promise.resolve(
+        jsonResponse(
+          {
+            customer: { ...customerFixture(), current_balance: "125000.00" },
+            ledger: {
+              ...ledgerFixture()[0],
+              id: 32,
+              event_type: "BALANCE_ADJUSTMENT",
+              ref_type: "BALANCE_ADJUSTMENT",
+              amount_delta: "25000.00",
+              balance_after: "125000.00",
+              note: "manual correction",
+            },
+          },
+          201,
+        ),
+      );
+    }
     if (url.endsWith("/customers/21/ledger")) {
       return Promise.resolve(jsonResponse(ledger));
     }
@@ -266,6 +532,12 @@ function mockCustomerSession(
     }
     if (url.endsWith("/customers/21/debt-payments")) {
       return Promise.resolve(jsonResponse(debtPayments));
+    }
+    if (url.endsWith("/customers/21") && init?.method === "PATCH") {
+      return Promise.resolve(jsonResponse({ ...customerFixture(), customer_name: "Cong ty Cap Nhat", phone: "0911" }));
+    }
+    if (url.endsWith("/customers/21") && init?.method === "DELETE") {
+      return Promise.resolve(jsonResponse({ customer_id: 21, action: "deactivated" }));
     }
     if (url.endsWith("/customers/404")) {
       return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Customer not found" } }, 404));
@@ -318,7 +590,7 @@ function mockSalesSession(role: UserRole, invoices: unknown[] = [invoiceFixture(
     if (url.endsWith("/sales/invoices/51")) {
       return Promise.resolve(jsonResponse(invoiceFixture()));
     }
-    if (url.endsWith("/sales/invoices")) {
+    if (url.includes("/sales/invoices?") || url.endsWith("/sales/invoices")) {
       return Promise.resolve(jsonResponse(invoices));
     }
     return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Not found" } }, 404));
@@ -366,7 +638,7 @@ function mockReturnsSession(role: UserRole, returns: unknown[] = [returnFixture(
     if (url.endsWith("/returns/71")) {
       return Promise.resolve(jsonResponse(returnFixture()));
     }
-    if (url.endsWith("/returns")) {
+    if (url.includes("/returns?") || url.endsWith("/returns")) {
       return Promise.resolve(jsonResponse(returns));
     }
     return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Not found" } }, 404));
@@ -424,6 +696,129 @@ describe("admin shell", () => {
     renderRoute("/");
 
     expect(await screen.findByRole("heading", { name: "Khong co quyen truy cap" })).toBeInTheDocument();
+  });
+});
+
+describe("reports and dashboard", () => {
+  it("renders dashboard loading state", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.endsWith("/reports/dashboard-summary")) return new Promise(() => undefined);
+        return Promise.resolve(jsonResponse({}));
+      }),
+    );
+
+    renderRoute("/");
+
+    expect(await screen.findByText("Dang tai tong quan...")).toBeInTheDocument();
+  });
+
+  it("renders dashboard summary cards", async () => {
+    mockAuthenticatedSession("read_only");
+    renderRoute("/");
+
+    expect(await screen.findByText("Doanh thu hom nay")).toBeInTheDocument();
+    expect(screen.getByText("250.000")).toBeInTheDocument();
+    expect(screen.getByText("Cong no hien tai")).toBeInTheDocument();
+    expect(screen.getByText("85.000")).toBeInTheDocument();
+    expect(screen.getByText("Hoa don hom nay")).toBeInTheDocument();
+  });
+
+  it("renders dashboard backend error", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.endsWith("/reports/dashboard-summary")) {
+          return Promise.resolve(jsonResponse({ error: { code: "boom", message: "Dashboard failed" } }, 500));
+        }
+        return Promise.resolve(jsonResponse({}));
+      }),
+    );
+
+    renderRoute("/");
+
+    expect(await screen.findByText("Dashboard failed")).toBeInTheDocument();
+  });
+
+  it("renders report tables for debts and inventory", async () => {
+    mockAuthenticatedSession("read_only");
+    renderRoute("/reports");
+
+    expect(await screen.findByRole("heading", { name: "Bao cao" })).toBeInTheDocument();
+    expect(await screen.findByText("Cong ty Minh Anh")).toBeInTheDocument();
+    expect(screen.getByText("0909000000")).toBeInTheDocument();
+    expect(screen.getByText("GAO-01")).toBeInTheDocument();
+    expect(screen.getByText("Gao Thom")).toBeInTheDocument();
+  });
+
+  it("sales report date filter triggers query", async () => {
+    const fetchMock = mockAuthenticatedSession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/reports");
+
+    await screen.findByRole("heading", { name: "Bao cao" });
+    await testUser.type(screen.getByLabelText("Tu ngay"), "2026-05-01");
+    await testUser.type(screen.getByLabelText("Den ngay"), "2026-05-31");
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("/reports/sales-summary?date_from=2026-05-01"))).toBe(true);
+      expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("date_to=2026-05-31"))).toBe(true);
+    });
+  });
+
+  it("read only can view reports and employee is blocked by shell", async () => {
+    mockAuthenticatedSession("read_only");
+    renderRoute("/reports");
+    expect(await screen.findByRole("heading", { name: "Bao cao" })).toBeInTheDocument();
+
+    cleanup();
+    mockAuthenticatedSession("employee");
+    renderRoute("/reports");
+    expect(await screen.findByRole("heading", { name: "Khong co quyen truy cap" })).toBeInTheDocument();
+  });
+
+  it("renders reports backend error", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.endsWith("/reports/customer-debts")) {
+          return Promise.resolve(jsonResponse({ error: { code: "boom", message: "Reports failed" } }, 500));
+        }
+        if (url.endsWith("/reports/inventory-summary")) return Promise.resolve(jsonResponse(inventorySummaryReportFixture()));
+        if (url.includes("/reports/sales-summary")) return Promise.resolve(jsonResponse(salesSummaryReportFixture()));
+        if (url.includes("/reports/returns-summary")) return Promise.resolve(jsonResponse(returnsSummaryReportFixture()));
+        return Promise.resolve(jsonResponse({}));
+      }),
+    );
+
+    renderRoute("/reports");
+
+    expect(await screen.findByText("Reports failed")).toBeInTheDocument();
   });
 });
 
@@ -511,6 +906,19 @@ describe("customers", () => {
     });
   });
 
+  it("sends include inactive query when customer inactive toggle is enabled", async () => {
+    const fetchMock = mockCustomerSession("owner", [customerFixture(), inactiveCustomerFixture()]);
+    const testUser = userEvent.setup();
+    renderRoute("/customers");
+
+    await screen.findByRole("heading", { name: "Khach hang" });
+    await testUser.click(screen.getByLabelText("Hien khach ngung dung"));
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("include_inactive=true"))).toBe(true);
+    });
+  });
+
   it("shows create customer action to owner and admin but not read only", async () => {
     mockCustomerSession("owner", []);
     renderRoute("/customers");
@@ -595,6 +1003,123 @@ describe("customers", () => {
     expect(screen.getAllByText("100.000").length).toBeGreaterThan(0);
   });
 
+  it("shows customer detail actions to owner and admin but not read only", async () => {
+    mockCustomerSession("owner");
+    renderRoute("/customers/21");
+    expect(await screen.findByRole("link", { name: "Sua khach hang" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xoa khach hang" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Điều chỉnh công nợ" })).toBeInTheDocument();
+
+    cleanup();
+    mockCustomerSession("admin");
+    renderRoute("/customers/21");
+    expect(await screen.findByRole("link", { name: "Sua khach hang" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xoa khach hang" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Điều chỉnh công nợ" })).toBeInTheDocument();
+
+    cleanup();
+    mockCustomerSession("read_only");
+    renderRoute("/customers/21");
+    await screen.findByRole("heading", { name: "Chi tiet khach hang" });
+    expect(screen.queryByRole("link", { name: "Sua khach hang" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Xoa khach hang" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Điều chỉnh công nợ" })).not.toBeInTheDocument();
+  });
+
+  it("preloads customer edit form", async () => {
+    mockCustomerSession("owner");
+    renderRoute("/customers/21/edit");
+
+    expect(await screen.findByDisplayValue("Cong ty Minh Anh")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("0909000000")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Ha Noi")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Khach hang than thiet")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("100000.00")).toBeDisabled();
+  });
+
+  it("edits customer profile and redirects to detail", async () => {
+    const fetchMock = mockCustomerSession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/customers/21/edit");
+
+    await screen.findByRole("heading", { name: "Sua khach hang" });
+    await screen.findByDisplayValue("Cong ty Minh Anh");
+    await testUser.clear(screen.getByLabelText("Ten khach hang"));
+    await testUser.type(screen.getByLabelText("Ten khach hang"), "Cong ty Cap Nhat");
+    await testUser.clear(screen.getByLabelText("Dien thoai"));
+    await testUser.type(screen.getByLabelText("Dien thoai"), "0911");
+    await testUser.click(screen.getByRole("button", { name: "Luu khach hang" }));
+
+    expect(await screen.findByRole("heading", { name: "Chi tiet khach hang" })).toBeInTheDocument();
+    const patchCall = fetchMock.mock.calls.find((call) => String(call[0]).endsWith("/customers/21") && call[1]?.method === "PATCH");
+    expect(patchCall).toBeTruthy();
+    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({
+      customer_name: "Cong ty Cap Nhat",
+      phone: "0911",
+      address: "Ha Noi",
+      note: "Khach hang than thiet",
+    });
+  });
+
+  it("displays customer edit backend error", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.endsWith("/customers/21") && init?.method === "PATCH") {
+          return Promise.resolve(jsonResponse({ error: { code: "conflict", message: "Customer update failed" } }, 409));
+        }
+        if (url.endsWith("/customers/21")) return Promise.resolve(jsonResponse(customerFixture()));
+        return Promise.resolve(jsonResponse([]));
+      }),
+    );
+    const testUser = userEvent.setup();
+    renderRoute("/customers/21/edit");
+
+    await screen.findByDisplayValue("Cong ty Minh Anh");
+    await testUser.click(screen.getByRole("button", { name: "Luu khach hang" }));
+
+    expect(await screen.findByText("Customer update failed")).toBeInTheDocument();
+  });
+
+  it("denies read only access to customer edit route", async () => {
+    mockCustomerSession("read_only");
+    renderRoute("/customers/21/edit");
+
+    expect(await screen.findByRole("heading", { name: "Khong co quyen truy cap" })).toBeInTheDocument();
+  });
+
+  it("customer delete confirmation cancel does not call API", async () => {
+    const fetchMock = mockCustomerSession("owner");
+    const testUser = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    renderRoute("/customers/21");
+
+    await testUser.click(await screen.findByRole("button", { name: "Xoa khach hang" }));
+
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21") && call[1]?.method === "DELETE")).toBe(false);
+  });
+
+  it("customer delete confirmation success redirects to list with result message", async () => {
+    const fetchMock = mockCustomerSession("owner");
+    const testUser = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+    renderRoute("/customers/21");
+
+    await testUser.click(await screen.findByRole("button", { name: "Xoa khach hang" }));
+
+    expect(await screen.findByRole("heading", { name: "Khach hang" })).toBeInTheDocument();
+    expect(await screen.findByText("Khach hang da duoc ngung dung.")).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21") && call[1]?.method === "DELETE")).toBe(true);
+  });
+
   it("read only sees debt payment list but no mutation buttons", async () => {
     mockCustomerSession("read_only");
     renderRoute("/customers/21");
@@ -614,6 +1139,35 @@ describe("customers", () => {
     expect(screen.getByRole("button", { name: "Xoa" })).toBeInTheDocument();
   });
 
+  it("adjusts customer balance and refetches customer detail", async () => {
+    const fetchMock = mockCustomerSession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/customers/21");
+
+    await testUser.click(await screen.findByRole("button", { name: "Điều chỉnh công nợ" }));
+    await testUser.clear(screen.getByLabelText("So du muc tieu"));
+    await testUser.type(screen.getByLabelText("So du muc tieu"), "125000");
+    await testUser.type(screen.getByLabelText("Ghi chu"), "manual correction");
+    await testUser.click(screen.getByRole("button", { name: "Luu dieu chinh" }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21/balance-adjustments") && call[1]?.method === "POST"),
+      ).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21/ledger")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21/debt-payments")).length).toBeGreaterThan(1);
+    });
+    const adjustmentCall = fetchMock.mock.calls.find(
+      (call) => String(call[0]).endsWith("/customers/21/balance-adjustments") && call[1]?.method === "POST",
+    );
+    expect(JSON.parse(String(adjustmentCall?.[1]?.body))).toEqual({
+      target_balance: "125000",
+      note: "manual correction",
+    });
+    expect(await screen.findByText("Da dieu chinh cong no.")).toBeInTheDocument();
+  });
+
   it("creates a debt payment and refetches customer detail", async () => {
     const fetchMock = mockCustomerSession("owner", [customerFixture()], ledgerFixture(), []);
     const testUser = userEvent.setup();
@@ -625,7 +1179,11 @@ describe("customers", () => {
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21/debt-payments") && call[1]?.method === "POST")).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21/ledger")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21/debt-payments")).length).toBeGreaterThan(1);
     });
+    expect(await screen.findByText("Da them thanh toan cong no.")).toBeInTheDocument();
   });
 
   it("rejects non-positive debt payment amount", async () => {
@@ -683,7 +1241,19 @@ describe("customers", () => {
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21/debt-payments/41") && call[1]?.method === "PATCH")).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21")).length).toBeGreaterThan(1);
     });
+  });
+
+  it("debt payment delete confirmation cancel does not call API", async () => {
+    const fetchMock = mockCustomerSession("owner");
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    const testUser = userEvent.setup();
+    renderRoute("/customers/21");
+
+    await testUser.click(await screen.findByRole("button", { name: "Xoa" }));
+
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21/debt-payments/41") && call[1]?.method === "DELETE")).toBe(false);
   });
 
   it("deletes a debt payment after confirmation", async () => {
@@ -696,7 +1266,9 @@ describe("customers", () => {
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/customers/21/debt-payments/41") && call[1]?.method === "DELETE")).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/customers/21")).length).toBeGreaterThan(1);
     });
+    expect(await screen.findByText("Da xoa thanh toan cong no.")).toBeInTheDocument();
   });
 
   it("shows debt payment delete error", async () => {
@@ -775,6 +1347,52 @@ describe("sales invoices", () => {
     expect(screen.queryByRole("link", { name: "Tao hoa don" })).not.toBeInTheDocument();
   });
 
+  it("sends invoice search and date range to backend query", async () => {
+    const fetchMock = mockSalesSession("owner", [invoiceFixture(), olderInvoiceFixture()]);
+    const testUser = userEvent.setup();
+    renderRoute("/sales/invoices");
+
+    expect(await screen.findByText("HD20260517-001")).toBeInTheDocument();
+    expect(screen.getByText("HD20250101-001")).toBeInTheDocument();
+
+    await testUser.type(screen.getByPlaceholderText("Ma hoa don hoac khach hang"), "Minh Anh");
+    await testUser.type(screen.getByLabelText("Tu ngay"), "2026-01-01");
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => {
+          const url = String(call[0]);
+          return url.includes("/sales/invoices?") && url.includes("search=Minh+Anh") && url.includes("date_from=2026-01-01");
+        }),
+      ).toBe(true);
+    });
+  });
+
+  it("shows no-results empty state for invoice filters", async () => {
+    mockSalesSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/sales/invoices");
+
+    await screen.findByText("Chua co hoa don ban hang.");
+    await testUser.type(screen.getByPlaceholderText("Ma hoa don hoac khach hang"), "khong-co");
+
+    expect(await screen.findByText("Khong co hoa don phu hop bo loc hien tai.")).toBeInTheDocument();
+  });
+
+  it("shows invoice row view action and owner edit action", async () => {
+    mockSalesSession("owner");
+    renderRoute("/sales/invoices");
+
+    expect(await screen.findByRole("link", { name: "Xem" })).toHaveAttribute("href", "/sales/invoices/51");
+    expect(screen.getByRole("link", { name: "Sua" })).toHaveAttribute("href", "/sales/invoices/51/edit");
+
+    cleanup();
+    mockSalesSession("read_only");
+    renderRoute("/sales/invoices");
+    expect(await screen.findByRole("link", { name: "Xem" })).toHaveAttribute("href", "/sales/invoices/51");
+    expect(screen.queryByRole("link", { name: "Sua" })).not.toBeInTheDocument();
+  });
+
   it("shows invoice create action to owner and admin but not read only", async () => {
     mockSalesSession("owner", []);
     renderRoute("/sales/invoices");
@@ -845,6 +1463,31 @@ describe("sales invoices", () => {
     expect(screen.queryByRole("option", { name: "Kg" })).not.toBeInTheDocument();
   });
 
+  it("shows product prices and customer phone in invoice selectors", async () => {
+    mockSalesSession("owner", []);
+    renderRoute("/sales/invoices/new");
+
+    await screen.findByRole("heading", { name: "Tao hoa don" });
+    expect(await screen.findByRole("option", { name: "GAO-01 - Gao Thom (BAO: 250000.00 | KG: 10000.00)" })).toBeInTheDocument();
+
+    const testUser = userEvent.setup();
+    await testUser.click(screen.getByLabelText("Khach hang"));
+    expect(await screen.findByRole("option", { name: "Cong ty Minh Anh - 0909000000" })).toBeInTheDocument();
+  });
+
+  it("quick add line preloads the first product and estimate", async () => {
+    mockSalesSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/sales/invoices/new");
+
+    await screen.findByRole("heading", { name: "Tao hoa don" });
+    await testUser.click(await screen.findByRole("button", { name: "Them nhanh hang dau tien" }));
+
+    expect(screen.getAllByRole("option", { name: "GAO-01 - Gao Thom (BAO: 250000.00 | KG: 10000.00)" })[1]).toBeInTheDocument();
+    expect(screen.getAllByText(/Gia dang bat: BAO: 250000.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Tam tinh dong:/).length).toBeGreaterThan(0);
+  });
+
   it("rejects unpaid walk-in invoice", async () => {
     mockSalesSession("owner", []);
     const testUser = userEvent.setup();
@@ -857,6 +1500,20 @@ describe("sales invoices", () => {
     await testUser.click(screen.getByRole("button", { name: "Tao hoa don" }));
 
     expect(await screen.findByText("Hoa don khach le phai thanh toan du hoac thanh toan thua.")).toBeInTheDocument();
+  });
+
+  it("shows per-line validation messages for missing product and invalid price", async () => {
+    mockSalesSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/sales/invoices/new");
+
+    await screen.findByRole("heading", { name: "Tao hoa don" });
+    await testUser.clear(await screen.findByLabelText("Don gia"));
+    await testUser.type(screen.getByLabelText("Don gia"), "abc");
+    await testUser.click(screen.getByRole("button", { name: "Tao hoa don" }));
+
+    expect(await screen.findByText("Can chon hang hoa.")).toBeInTheDocument();
+    expect(screen.getByText("Don gia phai la so khong am.")).toBeInTheDocument();
   });
 
   it("allows customer unpaid invoice and posts to API", async () => {
@@ -898,6 +1555,7 @@ describe("sales invoices", () => {
     await testUser.click(screen.getByRole("button", { name: "Tao hoa don" }));
 
     expect(await screen.findByRole("heading", { name: "Chi tiet hoa don" })).toBeInTheDocument();
+    expect(await screen.findByText("Da tao hoa don.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/sales/invoices") && call[1]?.method === "POST")).toBe(true);
   });
 
@@ -971,11 +1629,45 @@ describe("sales invoices", () => {
 
     expect(await screen.findByText("HD20260517-001")).toBeInTheDocument();
     expect(screen.getByText("Giao buoi sang")).toBeInTheDocument();
+    expect(screen.getByText("CASH")).toBeInTheDocument();
+    expect(screen.getByText("150.000")).toBeInTheDocument();
     expect(screen.getByText("GAO-01")).toBeInTheDocument();
     expect(screen.getByText("Gao Thom")).toBeInTheDocument();
     expect(screen.getByText("Bao")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Cap nhat hoa don" })).not.toBeInTheDocument();
+  });
+
+  it("renders inactive historical invoice detail and edit selections", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.includes("/inventory/products")) return Promise.resolve(jsonResponse([productFixture()]));
+        if (url.includes("/customers")) return Promise.resolve(jsonResponse([customerFixture()]));
+        if (url.endsWith("/sales/invoices/51") && init?.method === "PATCH") {
+          return Promise.resolve(jsonResponse(inactiveHistoricalInvoiceFixture()));
+        }
+        if (url.endsWith("/sales/invoices/51")) return Promise.resolve(jsonResponse(inactiveHistoricalInvoiceFixture()));
+        return Promise.resolve(jsonResponse([]));
+      }),
+    );
+
+    renderRoute("/sales/invoices/51");
+    expect(await screen.findByText("Khach Ngung Dung")).toBeInTheDocument();
+    expect(screen.getByText("Hang Ngung Dung")).toBeInTheDocument();
+
+    cleanup();
+    renderRoute("/sales/invoices/51/edit");
+    expect(await screen.findByRole("option", { name: "Khach Ngung Dung" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /OLD-01 - Hang Ngung Dung/ })).toBeInTheDocument();
   });
 
   it("shows invoice edit and delete controls to owner but not read only", async () => {
@@ -1036,6 +1728,7 @@ describe("sales invoices", () => {
     await testUser.click(screen.getByRole("button", { name: "Luu hoa don" }));
 
     expect(await screen.findByRole("heading", { name: "Chi tiet hoa don" })).toBeInTheDocument();
+    expect(await screen.findByText("Da cap nhat hoa don.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/sales/invoices/51") && call[1]?.method === "PATCH")).toBe(true);
   });
 
@@ -1089,6 +1782,7 @@ describe("sales invoices", () => {
     await testUser.click(await screen.findByRole("button", { name: "Xoa hoa don" }));
 
     expect(await screen.findByRole("heading", { name: "Ban hang" })).toBeInTheDocument();
+    expect(await screen.findByText("Da xoa hoa don.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/sales/invoices/51") && call[1]?.method === "DELETE")).toBe(true);
   });
 
@@ -1163,7 +1857,77 @@ describe("returns", () => {
     expect(screen.getByText("50.000")).toBeInTheDocument();
     expect(screen.getByText("Tru cong no")).toBeInTheDocument();
     expect(screen.getByText("#51")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem" })).toHaveAttribute("href", "/returns/71");
     expect(screen.queryByRole("link", { name: "Tao phieu tra" })).not.toBeInTheDocument();
+  });
+
+  it("sends return search and date range to backend query", async () => {
+    const fetchMock = mockReturnsSession("owner", [returnFixture()]);
+    const testUser = userEvent.setup();
+    renderRoute("/returns");
+
+    await screen.findByText("TR20260517-001");
+    await testUser.type(screen.getByLabelText("Tim phieu tra"), "Minh Anh");
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => {
+          const url = String(call[0]);
+          return url.includes("/returns?") && url.includes("search=Minh+Anh");
+        }),
+      ).toBe(true);
+    });
+
+    await testUser.clear(screen.getByLabelText("Tim phieu tra"));
+    await testUser.type(screen.getByLabelText("Tu ngay"), "2026-01-01");
+    await testUser.type(screen.getByLabelText("Den ngay"), "2026-12-31");
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => {
+          const url = String(call[0]);
+          return url.includes("/returns?")
+            && url.includes("date_from=2026-01-01T00%3A00%3A00")
+            && url.includes("date_to=2026-12-31T23%3A59%3A59");
+        }),
+      ).toBe(true);
+    });
+  });
+
+  it("shows return no-results empty state for unmatched filters", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.includes("/returns?search=khong+co")) return Promise.resolve(jsonResponse([]));
+        if (url.includes("/returns")) return Promise.resolve(jsonResponse([returnFixture()]));
+        return Promise.resolve(jsonResponse([]));
+      }),
+    );
+    const testUser = userEvent.setup();
+    renderRoute("/returns");
+
+    await screen.findByText("TR20260517-001");
+    await testUser.type(screen.getByLabelText("Tim phieu tra"), "khong co");
+
+    expect(await screen.findByText("Khong co phieu tra phu hop bo loc hien tai.")).toBeInTheDocument();
+  });
+
+  it("shows return row edit action to owner and hides it from read only", async () => {
+    mockReturnsSession("owner");
+    renderRoute("/returns");
+    expect(await screen.findByRole("link", { name: "Sua" })).toHaveAttribute("href", "/returns/71/edit");
+
+    cleanup();
+    mockReturnsSession("read_only");
+    renderRoute("/returns");
+    expect(await screen.findByRole("link", { name: "Xem" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sua" })).not.toBeInTheDocument();
   });
 
   it("shows return create action to owner and admin but not read only", async () => {
@@ -1202,6 +1966,7 @@ describe("returns", () => {
     await testUser.click(screen.getByRole("button", { name: "Tao phieu tra" }));
 
     expect(await screen.findByText("TR20260517-001")).toBeInTheDocument();
+    expect(await screen.findByText("Da tao phieu tra.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/returns") && call[1]?.method === "POST")).toBe(true);
   });
 
@@ -1223,6 +1988,52 @@ describe("returns", () => {
     });
   });
 
+  it("renders useful return form selector labels", async () => {
+    mockReturnsSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/returns/new");
+
+    await screen.findByRole("heading", { name: "Tao phieu tra" });
+    await testUser.click(await screen.findByLabelText("Tra theo hoa don"));
+    expect(screen.getByRole("option", { name: /HD20260517-001 - Cong ty Minh Anh/ })).toBeInTheDocument();
+    await testUser.selectOptions(await screen.findByLabelText("Hoa don goc"), "51");
+    expect(screen.getByRole("option", { name: /GAO-01 - Gao Thom - Bao - 1.000/ })).toBeInTheDocument();
+
+    await testUser.click(screen.getByLabelText("Tra nhanh"));
+    expect(screen.getByRole("option", { name: /GAO-01 - Gao Thom/ })).toBeInTheDocument();
+    await testUser.click(screen.getByLabelText("Khach hang"));
+    expect(screen.getByRole("option", { name: /Cong ty Minh Anh - 0909000000/ })).toBeInTheDocument();
+  });
+
+  it("shows return line validation near missing fields and invalid quantity", async () => {
+    mockReturnsSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/returns/new");
+
+    await screen.findByRole("heading", { name: "Tao phieu tra" });
+    await testUser.clear(await screen.findByLabelText("So luong"));
+    await testUser.type(screen.getByLabelText("So luong"), "0");
+    await testUser.click(screen.getByRole("button", { name: "Tao phieu tra" }));
+
+    expect(await screen.findByText("Can chon hang hoa.")).toBeInTheDocument();
+    expect(screen.getByText("Can chon don vi.")).toBeInTheDocument();
+    expect(screen.getByText("So luong phai lon hon 0.")).toBeInTheDocument();
+  });
+
+  it("updates return total estimate from line values", async () => {
+    mockReturnsSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/returns/new");
+
+    await screen.findByRole("heading", { name: "Tao phieu tra" });
+    await testUser.selectOptions(await screen.findByLabelText("Hang hoa"), "10");
+    await testUser.clear(screen.getByLabelText("So luong"));
+    await testUser.type(screen.getByLabelText("So luong"), "2");
+
+    expect(screen.getByText("Tam tinh dong: 500.000")).toBeInTheDocument();
+    expect(screen.getByText("Tong tam tinh: 500.000")).toBeInTheDocument();
+  });
+
   it("rejects walk-in store credit return", async () => {
     mockReturnsSession("owner", []);
     const testUser = userEvent.setup();
@@ -1234,6 +2045,19 @@ describe("returns", () => {
     await testUser.click(screen.getByRole("button", { name: "Tao phieu tra" }));
 
     expect(await screen.findByText("Phieu tra khach le chi duoc hoan tien ngay.")).toBeInTheDocument();
+  });
+
+  it("requires source invoice and source item for linked returns", async () => {
+    mockReturnsSession("owner", []);
+    const testUser = userEvent.setup();
+    renderRoute("/returns/new");
+
+    await screen.findByRole("heading", { name: "Tao phieu tra" });
+    await testUser.click(await screen.findByLabelText("Tra theo hoa don"));
+    await testUser.click(screen.getByRole("button", { name: "Tao phieu tra" }));
+
+    expect(await screen.findByText("Can chon hoa don goc.")).toBeInTheDocument();
+    expect(screen.getByText("Can chon dong hoa don goc.")).toBeInTheDocument();
   });
 
   it("renders return empty state", async () => {
@@ -1274,6 +2098,8 @@ describe("returns", () => {
 
     expect(await screen.findByText("TR20260517-001")).toBeInTheDocument();
     expect(screen.getByText("Tra mot phan")).toBeInTheDocument();
+    expect(screen.getByText("Tra theo hoa don")).toBeInTheDocument();
+    expect(screen.getByText("Tru cong no")).toBeInTheDocument();
     expect(screen.getByText("GAO-01")).toBeInTheDocument();
     expect(screen.getByText("Gao Thom")).toBeInTheDocument();
     expect(screen.getByText("Kg")).toBeInTheDocument();
@@ -1316,6 +2142,40 @@ describe("returns", () => {
     expect(screen.getByDisplayValue("5.000")).toBeInTheDocument();
   });
 
+  it("renders inactive historical return detail and edit selections", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.includes("/inventory/products")) return Promise.resolve(jsonResponse([productFixture()]));
+        if (url.includes("/customers")) return Promise.resolve(jsonResponse([customerFixture()]));
+        if (url.endsWith("/sales/invoices")) return Promise.resolve(jsonResponse([]));
+        if (url.endsWith("/returns/71") && init?.method === "PATCH") {
+          return Promise.resolve(jsonResponse(inactiveHistoricalReturnFixture()));
+        }
+        if (url.endsWith("/returns/71")) return Promise.resolve(jsonResponse(inactiveHistoricalReturnFixture()));
+        return Promise.resolve(jsonResponse([]));
+      }),
+    );
+
+    renderRoute("/returns/71");
+    expect(await screen.findByText("Khach Ngung Dung")).toBeInTheDocument();
+    expect(screen.getByText("Hang Ngung Dung")).toBeInTheDocument();
+
+    cleanup();
+    renderRoute("/returns/71/edit");
+    expect(await screen.findByRole("option", { name: /#51 - Khach Ngung Dung/ })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /OLD-01 - Hang Ngung Dung - Kg - 5.000 - 50.000/ })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /OLD-01 - Hang Ngung Dung \(BAO_KG; Kg: 10000.00\)/ })).toBeInTheDocument();
+  });
+
   it("edits return and redirects to detail", async () => {
     const fetchMock = mockReturnsSession("owner");
     const testUser = userEvent.setup();
@@ -1328,6 +2188,7 @@ describe("returns", () => {
     await testUser.type(screen.getByLabelText("So luong"), "1");
     await testUser.click(screen.getByRole("button", { name: "Luu phieu tra" }));
 
+    expect(await screen.findByText("Da cap nhat phieu tra.")).toBeInTheDocument();
     await waitFor(() => {
       expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/returns/71") && call[1]?.method === "PATCH")).toBe(true);
     });
@@ -1384,6 +2245,7 @@ describe("returns", () => {
     await testUser.click(await screen.findByRole("button", { name: "Xoa phieu tra" }));
 
     expect(await screen.findByRole("heading", { name: "Tra hang" })).toBeInTheDocument();
+    expect(await screen.findByText("Da xoa phieu tra.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/returns/71") && call[1]?.method === "DELETE")).toBe(true);
   });
 
@@ -1456,7 +2318,20 @@ describe("inventory products", () => {
     expect(await screen.findByText("GAO-01")).toBeInTheDocument();
     expect(screen.getByText("Gao Thom")).toBeInTheDocument();
     expect(screen.getByText(/BAO: 250000.00/)).toBeInTheDocument();
-    expect(screen.getByText("5.000")).toBeInTheDocument();
+    expect(screen.getByText("BAO: 5.000 | KG: 125.000")).toBeInTheDocument();
+  });
+
+  it("links product rows to detail and sends include_inactive when toggled", async () => {
+    const fetchMock = mockInventorySession("owner", [productFixture(), inactiveProductFixture()]);
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products");
+
+    expect(await screen.findByRole("link", { name: "GAO-01" })).toHaveAttribute("href", "/inventory/products/10");
+    await testUser.click(screen.getByLabelText("Hien hang ngung dung"));
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("include_inactive=true"))).toBe(true);
+    });
   });
 
   it("renders inventory empty state", async () => {
@@ -1611,6 +2486,229 @@ describe("inventory products", () => {
     await testUser.click(screen.getByRole("button", { name: "Tạo sản phẩm" }));
 
     expect(await screen.findByText("Product code already exists.")).toBeInTheDocument();
+  });
+
+  it("renders product detail with balance and prices", async () => {
+    mockInventorySession("owner");
+    renderRoute("/inventory/products/10");
+
+    expect(await screen.findByRole("heading", { name: "Chi tiet hang hoa" })).toBeInTheDocument();
+    expect(await screen.findByText("GAO-01")).toBeInTheDocument();
+    expect(screen.getByText("BAO: 5.000 | KG: 125.000")).toBeInTheDocument();
+    expect(screen.getByText("250000.00")).toBeInTheDocument();
+    expect(screen.getByText("10000.00")).toBeInTheDocument();
+    expect(screen.getByText("Dang dung")).toBeInTheDocument();
+    expect(await screen.findByText("Lich su ton kho")).toBeInTheDocument();
+    expect(screen.getAllByText("Dat ton thuc te").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Ban hang").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Tra hang").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "Hoa don #51" })).toHaveAttribute("href", "/sales/invoices/51");
+    expect(screen.getByRole("link", { name: "Phieu tra #71" })).toHaveAttribute("href", "/returns/71");
+  });
+
+  it("read only can view product detail but cannot edit delete or adjust stock", async () => {
+    mockInventorySession("read_only");
+    renderRoute("/inventory/products/10");
+
+    expect(await screen.findByRole("heading", { name: "Chi tiet hang hoa" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sua hang hoa" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Xoa hang hoa" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tang ton" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Giam ton" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Dat ton thuc te" })).not.toBeInTheDocument();
+  });
+
+  it("owner and admin can access product edit page", async () => {
+    mockInventorySession("owner");
+    renderRoute("/inventory/products/10/edit");
+    expect(await screen.findByRole("heading", { name: "Sua hang hoa" })).toBeInTheDocument();
+
+    cleanup();
+    mockInventorySession("admin");
+    renderRoute("/inventory/products/10/edit");
+    expect(await screen.findByRole("heading", { name: "Sua hang hoa" })).toBeInTheDocument();
+  });
+
+  it("denies read only access to product edit route", async () => {
+    mockInventorySession("read_only");
+    renderRoute("/inventory/products/10/edit");
+
+    expect(await screen.findByRole("heading", { name: "Khong co quyen truy cap" })).toBeInTheDocument();
+  });
+
+  it("preloads product edit form data", async () => {
+    mockInventorySession("owner");
+    renderRoute("/inventory/products/10/edit");
+
+    expect(await screen.findByDisplayValue("GAO-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Gao Thom")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("250000.00")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("10000.00")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("BAO_KG")).toBeDisabled();
+  });
+
+  it("edits product prices and redirects to detail", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10/edit");
+
+    await screen.findByRole("heading", { name: "Sua hang hoa" });
+    await screen.findByDisplayValue("Gao Thom");
+    await testUser.clear(screen.getByLabelText("Ten hang hoa"));
+    await testUser.type(screen.getByLabelText("Ten hang hoa"), "Gao Cap Nhat");
+    await testUser.clear(screen.getByLabelText("Gia KG"));
+    await testUser.type(screen.getByLabelText("Gia KG"), "12000");
+    await testUser.click(screen.getByRole("button", { name: "Luu hang hoa" }));
+
+    expect(await screen.findByRole("heading", { name: "Chi tiet hang hoa" })).toBeInTheDocument();
+    const patchCall = fetchMock.mock.calls.find((call) => String(call[0]).endsWith("/inventory/products/10") && call[1]?.method === "PATCH");
+    expect(patchCall).toBeTruthy();
+    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({
+      product_name: "Gao Cap Nhat",
+      prices: [
+        { unit_type: "BAO", price: "250000.00", is_enabled: true },
+        { unit_type: "KG", price: "12000", is_enabled: true },
+      ],
+    });
+  });
+
+  it("delete confirmation cancel does not call product API", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    renderRoute("/inventory/products/10");
+
+    await testUser.click(await screen.findByRole("button", { name: "Xoa hang hoa" }));
+
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/inventory/products/10") && call[1]?.method === "DELETE")).toBe(false);
+  });
+
+  it("delete confirmation success redirects to product list with result message", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+    renderRoute("/inventory/products/10");
+
+    await testUser.click(await screen.findByRole("button", { name: "Xoa hang hoa" }));
+
+    expect(await screen.findByRole("heading", { name: "Hang hoa" })).toBeInTheDocument();
+    expect(await screen.findByText("Hang hoa da duoc ngung dung.")).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/inventory/products/10") && call[1]?.method === "DELETE")).toBe(true);
+  });
+
+  it("stock increase success refetches product balance", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10");
+
+    await screen.findByRole("heading", { name: "Chi tiet hang hoa" });
+    await screen.findByRole("button", { name: "Tang ton" });
+    await testUser.type(screen.getByLabelText("So luong"), "1");
+    await testUser.type(screen.getByLabelText("Ly do"), "Nhap them");
+    await testUser.click(screen.getByRole("button", { name: "Tang ton" }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/inventory/products/10/stock/increase") && call[1]?.method === "POST"),
+      ).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10/movements")).length).toBeGreaterThan(1);
+    });
+    expect(await screen.findByText("Da tang ton kho.")).toBeInTheDocument();
+  });
+
+  it("stock decrease success refetches product balance", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10");
+
+    await screen.findByRole("heading", { name: "Chi tiet hang hoa" });
+    await screen.findByRole("button", { name: "Giam ton" });
+    await testUser.type(screen.getByLabelText("So luong"), "1");
+    await testUser.type(screen.getByLabelText("Ly do"), "Kiem kho");
+    await testUser.click(screen.getByRole("button", { name: "Giam ton" }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/inventory/products/10/stock/decrease") && call[1]?.method === "POST"),
+      ).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10/movements")).length).toBeGreaterThan(1);
+    });
+    expect(await screen.findByText("Da giam ton kho.")).toBeInTheDocument();
+  });
+
+  it("stock set success refetches product balance", async () => {
+    const fetchMock = mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10");
+
+    await screen.findByRole("heading", { name: "Chi tiet hang hoa" });
+    await screen.findByRole("button", { name: "Dat ton thuc te" });
+    await testUser.selectOptions(screen.getByLabelText("Don vi"), "KG");
+    await testUser.type(screen.getByLabelText("So luong"), "25");
+    await testUser.type(screen.getByLabelText("Ly do"), "Kiem kho thuc te");
+    await testUser.click(screen.getByRole("button", { name: "Dat ton thuc te" }));
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/inventory/products/10/stock/set") && call[1]?.method === "POST")).toBe(true);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10")).length).toBeGreaterThan(1);
+      expect(fetchMock.mock.calls.filter((call) => String(call[0]).endsWith("/inventory/products/10/movements")).length).toBeGreaterThan(1);
+    });
+    const setCall = fetchMock.mock.calls.find((call) => String(call[0]).endsWith("/inventory/products/10/stock/set") && call[1]?.method === "POST");
+    expect(JSON.parse(String(setCall?.[1]?.body))).toEqual({
+      unit_type: "KG",
+      target_quantity: "25",
+      note: "Kiem kho thuc te",
+    });
+    expect(await screen.findByText("Da dat ton thuc te.")).toBeInTheDocument();
+  });
+
+  it("filters inventory movements by type and date", async () => {
+    mockInventorySession("owner");
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10");
+
+    await screen.findByText("Lich su ton kho");
+    await testUser.selectOptions(screen.getByLabelText("Loai phat sinh"), "SALE");
+    expect(screen.getByRole("link", { name: "Hoa don #51" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Phieu tra #71" })).not.toBeInTheDocument();
+
+    await testUser.selectOptions(screen.getByLabelText("Loai phat sinh"), "");
+    await testUser.type(screen.getByLabelText("Tu ngay"), "2026-05-18");
+    expect(await screen.findByText("Khong co phat sinh phu hop bo loc.")).toBeInTheDocument();
+  });
+
+  it("displays product mutation API errors", async () => {
+    setRefreshToken("stored-refresh");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/auth/refresh")) {
+          return Promise.resolve(
+            jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+          );
+        }
+        if (url.endsWith("/auth/me")) return Promise.resolve(jsonResponse(user("owner")));
+        if (url.endsWith("/inventory/products/10/stock/increase") && init?.method === "POST") {
+          return Promise.resolve(jsonResponse({ error: { code: "validation_error", message: "Stock adjustment failed" } }, 422));
+        }
+        if (url.endsWith("/inventory/products/10/movements")) return Promise.resolve(jsonResponse(inventoryMovementFixture()));
+        if (url.endsWith("/inventory/products/10")) return Promise.resolve(jsonResponse(productFixture()));
+        return Promise.resolve(jsonResponse([]));
+      }),
+    );
+    const testUser = userEvent.setup();
+    renderRoute("/inventory/products/10");
+
+    await screen.findByRole("heading", { name: "Chi tiet hang hoa" });
+    await screen.findByRole("button", { name: "Tang ton" });
+    await testUser.type(screen.getByLabelText("So luong"), "1");
+    await testUser.type(screen.getByLabelText("Ly do"), "Nhap them");
+    await testUser.click(screen.getByRole("button", { name: "Tang ton" }));
+
+    expect(await screen.findByText("Stock adjustment failed")).toBeInTheDocument();
   });
 });
 
@@ -1767,6 +2865,14 @@ describe("auth flow", () => {
 
     await expect(apiRequest("/example", { skipAuth: true, skipRefresh: true })).rejects.toEqual(
       new ApiError(422, "validation_error", "Bad input"),
+    );
+  });
+
+  it("reports HTTP 500 as a backend error instead of a network failure", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("Internal Server Error", { status: 500 }))));
+
+    await expect(apiRequest("/reports/dashboard-summary", { skipAuth: true, skipRefresh: true })).rejects.toEqual(
+      new ApiError(500, "http_error", "Backend tra ve loi HTTP 500."),
     );
   });
 

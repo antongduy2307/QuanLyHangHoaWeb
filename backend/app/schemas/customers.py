@@ -71,6 +71,12 @@ class DebtPaymentRequest(BaseModel):
     note: str | None = None
 
 
+class BalanceAdjustmentRequest(BaseModel):
+    target_balance: Decimal
+    adjustment_datetime: datetime | None = None
+    note: str | None = None
+
+
 class CustomerResponse(BaseModel):
     id: int
     customer_name: str
@@ -119,6 +125,11 @@ class DebtPaymentResultResponse(BaseModel):
     payment: DebtPaymentResponse
     ledger: CustomerLedgerResponse | None
     current_balance: Decimal
+
+
+class BalanceAdjustmentResponse(BaseModel):
+    customer: CustomerResponse
+    ledger: CustomerLedgerResponse
 
 
 class CustomerDeleteResponse(BaseModel):

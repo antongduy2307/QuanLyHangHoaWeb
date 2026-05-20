@@ -1,8 +1,25 @@
 import { apiRequest } from "./client";
 import type { Invoice, InvoiceCreatePayload } from "./types";
 
-export function listInvoices() {
-  return apiRequest<Invoice[]>("/sales/invoices");
+export type ListInvoicesParams = {
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export function listInvoices(params: ListInvoicesParams = {}) {
+  const searchParams = new URLSearchParams();
+  if (params.search?.trim()) {
+    searchParams.set("search", params.search.trim());
+  }
+  if (params.dateFrom) {
+    searchParams.set("date_from", `${params.dateFrom}T00:00:00`);
+  }
+  if (params.dateTo) {
+    searchParams.set("date_to", `${params.dateTo}T23:59:59`);
+  }
+  const queryString = searchParams.toString();
+  return apiRequest<Invoice[]>(`/sales/invoices${queryString ? `?${queryString}` : ""}`);
 }
 
 export function getInvoice(invoiceId: number) {

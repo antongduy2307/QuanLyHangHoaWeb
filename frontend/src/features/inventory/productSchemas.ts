@@ -1,4 +1,4 @@
-import type { ProductCreatePayload, ProductPrice, UnitMode, UnitType } from "../../api/types";
+import type { Product, ProductCreatePayload, ProductPrice, ProductUpdatePayload, UnitMode, UnitType } from "../../api/types";
 
 export type ProductFormState = {
   product_code_base: string;
@@ -81,6 +81,34 @@ export function toProductCreatePayload(state: ProductFormState): ProductCreatePa
     product_code_base: state.product_code_base.trim(),
     product_name: state.product_name.trim(),
     unit_mode: state.unit_mode,
+    prices: enabledPricesForMode(state),
+  };
+}
+
+export function productToFormState(product: Product): ProductFormState {
+  const prices: ProductFormState["prices"] = {
+    BAO: { is_enabled: false, price: "" },
+    KG: { is_enabled: false, price: "" },
+    BICH: { is_enabled: false, price: "" },
+  };
+  for (const price of product.prices) {
+    prices[price.unit_type] = {
+      is_enabled: price.is_enabled,
+      price: price.price,
+    };
+  }
+
+  return {
+    product_code_base: product.product_code_base,
+    product_name: product.product_name,
+    unit_mode: product.unit_mode,
+    prices,
+  };
+}
+
+export function toProductUpdatePayload(state: ProductFormState): ProductUpdatePayload {
+  return {
+    product_name: state.product_name.trim(),
     prices: enabledPricesForMode(state),
   };
 }

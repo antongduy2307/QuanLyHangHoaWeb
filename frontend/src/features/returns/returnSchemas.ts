@@ -27,11 +27,11 @@ export type ReturnFormErrors = Record<string, string>;
 const decimalPattern = /^(?:\d+)(?:\.\d{1,3})?$/;
 const moneyPattern = /^(?:\d+)(?:\.\d{1,2})?$/;
 
-function isNonNegativeMoney(value: string) {
+export function isNonNegativeMoney(value: string) {
   return moneyPattern.test(value.trim());
 }
 
-function isPositiveDecimal(value: string) {
+export function isPositiveDecimal(value: string) {
   const normalized = value.trim();
   return decimalPattern.test(normalized) && !/^0(?:\.0{1,3})?$/.test(normalized);
 }
@@ -104,10 +104,14 @@ function findSourceInvoiceItem(invoices: Invoice[], sourceInvoiceId: string, sou
   return sourceInvoice?.items.find((item) => String(item.id) === sourceInvoiceItemId);
 }
 
-function lineTotalCents(item: ReturnItemFormState) {
-  const quantityThousandths = parseScaled(item.quantity, 3);
-  const priceCents = parseScaled(item.unitPrice, 2);
+export function lineEstimateCents(quantity: string, unitPrice: string) {
+  const quantityThousandths = parseScaled(quantity, 3);
+  const priceCents = parseScaled(unitPrice, 2);
   return (quantityThousandths * priceCents) / 1000n;
+}
+
+function lineTotalCents(item: ReturnItemFormState) {
+  return lineEstimateCents(item.quantity, item.unitPrice);
 }
 
 export function estimateReturnTotal(formState: ReturnFormState) {
@@ -156,11 +160,10 @@ export function validateReturnForm(formState: ReturnFormState, products: Product
     }
     if (!product) {
       errors[`${prefix}.productId`] = "Can chon hang hoa.";
-      return;
     }
     if (!item.unitType) {
       errors[`${prefix}.unitType`] = "Can chon don vi.";
-    } else if (!isCompatibleUnit(product, item.unitType)) {
+    } else if (product && !isCompatibleUnit(product, item.unitType)) {
       errors[`${prefix}.unitType`] = "Don vi khong phu hop voi hang hoa.";
     }
     if (!isPositiveDecimal(item.quantity)) {

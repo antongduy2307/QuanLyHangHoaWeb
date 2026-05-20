@@ -245,6 +245,25 @@ def test_patch_invoice_reapplies_effects(client: TestClient, session_factory) ->
     assert get_customer(session_factory, customer_id).current_balance == Decimal("150.00")
 
 
+def test_patch_invoice_preserves_paid_amount_when_omitted(client: TestClient, session_factory) -> None:
+    product_id = seed_product(session_factory)
+    customer_id = seed_customer(session_factory)
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    invoice = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(product_id, customer_id=customer_id, paid="20"),
+    ).json()
+    payload = invoice_payload(product_id, customer_id=customer_id, quantity="2", paid="999")
+    payload.pop("paid_amount")
+
+    response = client.patch(f"/api/sales/invoices/{invoice['id']}", headers=headers, json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["paid_amount"] == "20.00"
+    assert response.json()["total_amount"] == "200.00"
+
+
 def test_delete_invoice_rolls_back_effects(client: TestClient, session_factory) -> None:
     product_id = seed_product(session_factory)
     customer_id = seed_customer(session_factory)
@@ -275,3 +294,28 @@ def test_get_and_list_invoices(client: TestClient, session_factory) -> None:
     assert get_response.status_code == 200
     assert get_response.json()["id"] == invoice["id"]
     assert [row["id"] for row in list_response.json()] == [invoice["id"]]
+
+
+def test_list_invoices_searches_code_and_customer_snapshot(client: TestClient, session_factory) -> None:
+    product_id = seed_product(session_factory)
+    customer_id = seed_customer(session_factory, name="Cong ty Minh Anh")
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    customer_invoice = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(product_id, customer_id=customer_id, paid="0"),
+    ).json()
+    walk_in_invoice = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json={**invoice_payload(product_id), "customer_snapshot_name": "Khach le"},
+    ).json()
+
+    code_response = client.get("/api/sales/invoices", headers=headers, params={"search": customer_invoice["invoice_code"]})
+    customer_response = client.get("/api/sales/invoices", headers=headers, params={"search": "Minh Anh"})
+    miss_response = client.get("/api/sales/invoices", headers=headers, params={"search": "Khong Co"})
+
+    assert [row["id"] for row in code_response.json()] == [customer_invoice["id"]]
+    assert [row["id"] for row in customer_response.json()] == [customer_invoice["id"]]
+    assert miss_response.json() == []
+    assert walk_in_invoice["id"] not in {row["id"] for row in customer_response.json()}

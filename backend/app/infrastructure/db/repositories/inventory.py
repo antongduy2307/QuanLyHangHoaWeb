@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import BigInteger, Numeric, String, Text, cast, literal, null, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.domain.enums import UnitMode
 from app.domain.exceptions import NotFoundError
-from app.infrastructure.db.models.inventory import InventoryBalance, Product, ProductPrice
+from app.infrastructure.db.models.inventory import InventoryBalance, Product, ProductPrice, StockAdjustment
+from app.infrastructure.db.models.returns import ReturnInvoice, ReturnInvoiceItem
+from app.infrastructure.db.models.sales import Invoice, InvoiceItem
 
 
 class InventoryRepository:
@@ -65,6 +67,9 @@ class InventoryRepository:
     def add_product(self, session: Session, product: Product) -> None:
         session.add(product)
 
+    def add_stock_adjustment(self, session: Session, adjustment: StockAdjustment) -> None:
+        session.add(adjustment)
+
     def load_product_prices(self, session: Session, product_id: int) -> list[ProductPrice]:
         statement = select(ProductPrice).where(ProductPrice.product_id == product_id).order_by(ProductPrice.id.asc())
         return list(session.scalars(statement).all())
@@ -104,11 +109,69 @@ class InventoryRepository:
         return balance
 
     def product_has_history(self, session: Session, product_id: int) -> bool:
-        from app.infrastructure.db.models.returns import ReturnInvoiceItem
-        from app.infrastructure.db.models.sales import InvoiceItem
-
         checks = (
             select(InvoiceItem.id).where(InvoiceItem.product_id == product_id).limit(1),
             select(ReturnInvoiceItem.id).where(ReturnInvoiceItem.product_id == product_id).limit(1),
+            select(StockAdjustment.id).where(StockAdjustment.product_id == product_id).limit(1),
         )
         return any(session.scalar(statement) is not None for statement in checks)
+
+    def list_product_movements(self, session: Session, product_id: int) -> list[object]:
+        id_type = BigInteger()
+        quantity_type = Numeric(14, 3)
+
+        sale_statement = (
+            select(
+                cast(InvoiceItem.id, id_type).label("movement_id"),
+                Invoice.invoice_datetime.label("movement_datetime"),
+                cast(literal("SALE"), String(32)).label("movement_type"),
+                cast(-InvoiceItem.quantity, quantity_type).label("quantity_delta"),
+                cast(InvoiceItem.unit_type, String(16)).label("unit_type"),
+                cast(null(), quantity_type).label("balance_after"),
+                cast(literal("invoice"), String(32)).label("source_type"),
+                cast(Invoice.id, id_type).label("source_id"),
+                cast(Invoice.note, Text).label("note"),
+                cast(null(), Text).label("actor"),
+                Invoice.created_at.label("created_at"),
+            )
+            .join(Invoice, Invoice.id == InvoiceItem.invoice_id)
+            .where(InvoiceItem.product_id == product_id)
+        )
+        return_statement = (
+            select(
+                cast(ReturnInvoiceItem.id, id_type).label("movement_id"),
+                ReturnInvoice.return_datetime.label("movement_datetime"),
+                cast(literal("RETURN"), String(32)).label("movement_type"),
+                cast(ReturnInvoiceItem.quantity, quantity_type).label("quantity_delta"),
+                cast(ReturnInvoiceItem.unit_type, String(16)).label("unit_type"),
+                cast(null(), quantity_type).label("balance_after"),
+                cast(literal("return"), String(32)).label("source_type"),
+                cast(ReturnInvoice.id, id_type).label("source_id"),
+                cast(ReturnInvoice.note, Text).label("note"),
+                cast(null(), Text).label("actor"),
+                ReturnInvoice.created_at.label("created_at"),
+            )
+            .join(ReturnInvoice, ReturnInvoice.id == ReturnInvoiceItem.return_invoice_id)
+            .where(ReturnInvoiceItem.product_id == product_id)
+        )
+        adjustment_statement = select(
+            cast(StockAdjustment.id, id_type).label("movement_id"),
+            StockAdjustment.adjustment_datetime.label("movement_datetime"),
+            cast(StockAdjustment.movement_type, String(32)).label("movement_type"),
+            cast(StockAdjustment.quantity_delta, quantity_type).label("quantity_delta"),
+            cast(StockAdjustment.unit_type, String(16)).label("unit_type"),
+            cast(StockAdjustment.balance_after, quantity_type).label("balance_after"),
+            cast(literal("stock_adjustment"), String(32)).label("source_type"),
+            cast(StockAdjustment.id, id_type).label("source_id"),
+            cast(StockAdjustment.note, Text).label("note"),
+            cast(null(), Text).label("actor"),
+            StockAdjustment.created_at.label("created_at"),
+        ).where(StockAdjustment.product_id == product_id)
+
+        statement = sale_statement.union_all(return_statement, adjustment_statement).subquery()
+        ordered = select(statement).order_by(
+            statement.c.movement_datetime.desc(),
+            statement.c.created_at.desc(),
+            statement.c.movement_id.desc(),
+        )
+        return list(session.execute(ordered).mappings())

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.domain.exceptions import NotFoundError
 from app.infrastructure.db.models.customer import Customer, CustomerBalanceLedger, DebtPayment
+
+ZERO = Decimal("0")
 
 
 class CustomerRepository:
@@ -36,7 +40,7 @@ class CustomerRepository:
         if needle:
             statement = statement.where(Customer.customer_name.ilike(f"%{needle}%"))
         if only_positive_debt:
-            statement = statement.where(Customer.current_balance > 0)
+            statement = statement.where(Customer.current_balance > ZERO)
         return list(session.scalars(statement).all())
 
     def add_customer(self, session: Session, customer: Customer) -> None:
@@ -173,5 +177,31 @@ class CustomerRepository:
         return list(session.scalars(statement).all())
 
     def customer_has_history(self, session: Session, customer_id: int) -> bool:
-        statement = select(CustomerBalanceLedger.id).where(CustomerBalanceLedger.customer_id == customer_id).limit(1)
-        return session.scalar(statement) is not None
+        from app.infrastructure.db.models.returns import ReturnInvoice
+        from app.infrastructure.db.models.sales import Invoice
+
+        history_statements = [
+            select(CustomerBalanceLedger.id).where(CustomerBalanceLedger.customer_id == customer_id).limit(1),
+            select(Invoice.id).where(Invoice.customer_id == customer_id).limit(1),
+            select(ReturnInvoice.id).where(ReturnInvoice.customer_id == customer_id).limit(1),
+            select(DebtPayment.id).where(DebtPayment.customer_id == customer_id).limit(1),
+        ]
+        return any(session.scalar(statement) is not None for statement in history_statements)
+
+    def customer_has_trade_or_debt_history(self, session: Session, customer_id: int) -> bool:
+        from app.infrastructure.db.models.returns import ReturnInvoice
+        from app.infrastructure.db.models.sales import Invoice
+
+        history_statements = [
+            select(Invoice.id).where(Invoice.customer_id == customer_id).limit(1),
+            select(ReturnInvoice.id).where(ReturnInvoice.customer_id == customer_id).limit(1),
+            select(DebtPayment.id)
+            .where(DebtPayment.customer_id == customer_id)
+            .where(DebtPayment.is_deleted.is_(False))
+            .limit(1),
+            select(CustomerBalanceLedger.id)
+            .where(CustomerBalanceLedger.customer_id == customer_id)
+            .where(CustomerBalanceLedger.event_type == "DEBT_PAYMENT")
+            .limit(1),
+        ]
+        return any(session.scalar(statement) is not None for statement in history_statements)

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import { useAuth } from "../../auth/useAuth";
@@ -16,6 +16,8 @@ export function ReturnDetailPage() {
   const parsedReturnId = Number(returnId);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { returnMessage?: string } | null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const returnQuery = useReturn(parsedReturnId);
   const deleteReturn = useDeleteReturn(parsedReturnId);
@@ -33,7 +35,7 @@ export function ReturnDetailPage() {
     setDeleteError(null);
     try {
       await deleteReturn.mutateAsync();
-      navigate("/returns");
+      navigate("/returns", { state: { returnMessage: "Da xoa phieu tra." } });
     } catch (error) {
       setDeleteError(isApiError(error) ? error.message : "Khong the xoa phieu tra.");
     }
@@ -60,6 +62,7 @@ export function ReturnDetailPage() {
         </div>
       </div>
 
+      {locationState?.returnMessage ? <p className="state-message">{locationState.returnMessage}</p> : null}
       {returnQuery.isLoading ? <p className="state-message">Dang tai chi tiet phieu tra...</p> : null}
       {returnQuery.isError ? <p className="state-message error-message">{errorMessage}</p> : null}
       {deleteError ? <p className="state-message error-message">{deleteError}</p> : null}
@@ -77,6 +80,10 @@ export function ReturnDetailPage() {
             <div className="summary-card">
               <span>Khach hang</span>
               <strong>{returnQuery.data.customer_snapshot_name}</strong>
+            </div>
+            <div className="summary-card">
+              <span>Loai phieu</span>
+              <strong>{returnQuery.data.is_quick_return ? "Tra nhanh" : "Tra theo hoa don"}</strong>
             </div>
             <div className="summary-card">
               <span>Tong tien</span>

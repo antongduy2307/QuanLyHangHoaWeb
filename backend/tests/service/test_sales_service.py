@@ -15,6 +15,7 @@ from app.domain.exceptions import ValidationError
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.models.customer import CustomerBalanceLedger, DebtPayment
 from app.infrastructure.db.models.inventory import Product
+from app.infrastructure.db.models.sales import Invoice
 from app.schemas.sales import InvoiceItemInput
 
 
@@ -100,6 +101,74 @@ def test_generate_invoice_code_and_create_walk_in_invoice(
     assert product.inventory_balance.on_hand_bao_decimal == Decimal("9.000")
 
 
+def test_invoice_codes_are_sequential_per_invoice_date(
+    session: Session,
+    inventory_service: InventoryService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+
+    first = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="250000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+    second = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 10, 0, 0),
+        paid_amount="250000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+    different_day = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 17, 9, 0, 0),
+        paid_amount="250000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+
+    assert first.invoice_code == "HD20260516-001"
+    assert second.invoice_code == "HD20260516-002"
+    assert different_day.invoice_code == "HD20260517-001"
+
+
+def test_invoice_code_generation_avoids_existing_imported_codes(
+    session: Session,
+    inventory_service: InventoryService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+    session.add(
+        Invoice(
+            invoice_code="HD20260516-009",
+            customer_id=None,
+            customer_snapshot_name="Imported",
+            invoice_datetime=datetime(2026, 5, 16, 8, 0, 0),
+            total_amount=Decimal("0.00"),
+            paid_amount=Decimal("0.00"),
+            status="COMPLETED",
+        )
+    )
+    session.flush()
+
+    invoice = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="250000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+
+    assert invoice.invoice_code == "HD20260516-010"
+
+
 def test_reject_unpaid_walk_in_invoice(
     session: Session,
     inventory_service: InventoryService,
@@ -116,6 +185,65 @@ def test_reject_unpaid_walk_in_invoice(
             paid_amount="0",
             items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
         )
+
+
+def test_reject_new_invoice_for_inactive_customer(
+    session: Session,
+    inventory_service: InventoryService,
+    customer_service: CustomerService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+    customer = customer_service.create_customer(session, customer_name="Inactive")
+    customer.is_active = False
+    session.flush()
+
+    with pytest.raises(ValidationError):
+        sales_service.create_invoice(
+            session,
+            customer_id=customer.id,
+            customer_snapshot_name=None,
+            invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+            paid_amount="0",
+            items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+        )
+
+
+def test_inactive_historical_customer_invoice_detail_and_update_still_work(
+    session: Session,
+    inventory_service: InventoryService,
+    customer_service: CustomerService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+    customer = customer_service.create_customer(session, customer_name="Historical")
+    invoice = sales_service.create_invoice(
+        session,
+        customer_id=customer.id,
+        customer_snapshot_name=None,
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="0",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+    customer.is_active = False
+    session.flush()
+
+    loaded = sales_service.get_invoice(session, invoice.id)
+    updated = sales_service.update_invoice(
+        session,
+        invoice.id,
+        customer_id=customer.id,
+        customer_snapshot_name=None,
+        invoice_datetime=datetime(2026, 5, 16, 10, 0, 0),
+        paid_amount="100000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+
+    assert loaded.customer_id == customer.id
+    assert loaded.customer_snapshot_name == "Historical"
+    assert updated.customer_id == customer.id
+    assert updated.customer_snapshot_name == "Historical"
+    assert customer.current_balance == Decimal("150000.00")
 
 
 def test_customer_unpaid_invoice_creates_charge_ledger(
@@ -243,6 +371,47 @@ def test_manual_price_and_line_total_behavior(
     assert invoice.items[0].line_total == Decimal("33333.00")
 
 
+def test_default_line_total_rounds_to_currency_cents(
+    session: Session,
+    inventory_service: InventoryService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+
+    invoice = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="1.01",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "3", unit_price="0.335")],
+    )
+
+    assert invoice.total_amount == Decimal("1.01")
+    assert invoice.items[0].line_total == Decimal("1.01")
+
+
+def test_line_total_can_override_quantity_price_rounding(
+    session: Session,
+    inventory_service: InventoryService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+
+    invoice = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="1.00",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "3", unit_price="0.335", line_total="1.00")],
+    )
+
+    assert invoice.total_amount == Decimal("1.00")
+    assert invoice.items[0].unit_price == Decimal("0.335")
+    assert invoice.items[0].line_total == Decimal("1.00")
+
+
 def test_reject_inactive_product_and_invalid_unit_type(
     session: Session,
     inventory_service: InventoryService,
@@ -271,6 +440,38 @@ def test_reject_inactive_product_and_invalid_unit_type(
             paid_amount="250000",
             items=[InvoiceItemInput(product.id, UnitType.BICH, "1", unit_price="250000")],
         )
+
+
+def test_update_historical_invoice_with_inactive_product_still_works(
+    session: Session,
+    inventory_service: InventoryService,
+    sales_service: SalesService,
+) -> None:
+    product = create_bao_product(session, inventory_service)
+    invoice = sales_service.create_invoice(
+        session,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 9, 0, 0),
+        paid_amount="250000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "1")],
+    )
+    product.is_active = False
+    session.flush()
+
+    updated = sales_service.update_invoice(
+        session,
+        invoice.id,
+        customer_id=None,
+        customer_snapshot_name="Walk In",
+        invoice_datetime=datetime(2026, 5, 16, 10, 0, 0),
+        paid_amount="500000",
+        items=[InvoiceItemInput(product.id, UnitType.BAO, "2")],
+    )
+
+    assert updated.items[0].product_id == product.id
+    assert updated.items[0].product_name_snapshot == "Gao"
+    assert product.inventory_balance.on_hand_bao_decimal == Decimal("8.000")
 
 
 def test_delete_invoice_restores_inventory_and_customer_effects(

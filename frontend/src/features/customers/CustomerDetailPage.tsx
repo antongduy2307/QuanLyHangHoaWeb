@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { type FormEvent, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import type { DebtPayment } from "../../api/types";
@@ -9,9 +9,11 @@ import { formatDateTime } from "../../domain/dates";
 import { formatMoney } from "../../domain/money";
 import { DebtPaymentForm } from "./DebtPaymentForm";
 import {
+  useAdjustCustomerBalance,
   useCreateDebtPayment,
   useCustomer,
   useCustomerLedger,
+  useDeleteCustomer,
   useDebtPayments,
   useDeleteDebtPayment,
   useUpdateDebtPayment,
@@ -27,14 +29,22 @@ export function CustomerDetailPage() {
   const { customerId } = useParams();
   const parsedCustomerId = Number(customerId);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showBalanceAdjustment, setShowBalanceAdjustment] = useState(false);
+  const [targetBalance, setTargetBalance] = useState("");
+  const [balanceAdjustmentNote, setBalanceAdjustmentNote] = useState("");
   const [editingPayment, setEditingPayment] = useState<DebtPayment | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
+  const [deleteCustomerError, setDeleteCustomerError] = useState<string | null>(null);
   const customerQuery = useCustomer(parsedCustomerId);
   const ledgerQuery = useCustomerLedger(parsedCustomerId);
   const debtPaymentsQuery = useDebtPayments(parsedCustomerId);
+  const adjustCustomerBalance = useAdjustCustomerBalance(parsedCustomerId);
   const createDebtPayment = useCreateDebtPayment(parsedCustomerId);
   const updateDebtPayment = useUpdateDebtPayment(parsedCustomerId);
+  const deleteCustomer = useDeleteCustomer(parsedCustomerId);
   const deleteDebtPayment = useDeleteDebtPayment(parsedCustomerId);
   const canMutate = user ? canMutateDebtPayment(user.role) : false;
 
@@ -45,15 +55,61 @@ export function CustomerDetailPage() {
   const error = customerQuery.error || ledgerQuery.error || debtPaymentsQuery.error;
   const errorMessage = isApiError(error) ? error.message : "Khong the tai chi tiet khach hang.";
 
+  function openBalanceAdjustment() {
+    setTargetBalance(customerQuery.data?.current_balance ?? "");
+    setBalanceAdjustmentNote("");
+    setMutationError(null);
+    setMutationSuccess(null);
+    setShowBalanceAdjustment(true);
+  }
+
+  async function handleBalanceAdjustment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMutationError(null);
+    setMutationSuccess(null);
+    try {
+      await adjustCustomerBalance.mutateAsync({
+        target_balance: targetBalance.trim(),
+        note: balanceAdjustmentNote.trim() || null,
+      });
+      setShowBalanceAdjustment(false);
+      setMutationSuccess("Da dieu chinh cong no.");
+    } catch (adjustmentError) {
+      setMutationError(isApiError(adjustmentError) ? adjustmentError.message : "Khong the dieu chinh cong no.");
+    }
+  }
+
   async function handleDeletePayment(paymentId: number) {
     if (!window.confirm("Xoa thanh toan cong no nay?")) {
       return;
     }
     setMutationError(null);
+    setMutationSuccess(null);
     try {
       await deleteDebtPayment.mutateAsync(paymentId);
+      setMutationSuccess("Da xoa thanh toan cong no.");
     } catch (deleteError) {
       setMutationError(isApiError(deleteError) ? deleteError.message : "Khong the xoa thanh toan.");
+    }
+  }
+
+  async function handleDeleteCustomer() {
+    if (!window.confirm("Xoa hoac ngung dung khach hang nay?")) {
+      return;
+    }
+    setDeleteCustomerError(null);
+    try {
+      const result = await deleteCustomer.mutateAsync();
+      navigate("/customers", {
+        state: {
+          customerDeleteMessage:
+            result.action === "hard_deleted"
+              ? "Khach hang da duoc xoa vinh vien."
+              : "Khach hang da duoc ngung dung.",
+        },
+      });
+    } catch (error) {
+      setDeleteCustomerError(isApiError(error) ? error.message : "Khong the xoa khach hang.");
     }
   }
 
@@ -61,9 +117,21 @@ export function CustomerDetailPage() {
     <>
       <div className="page-title-row">
         <PageHeader title="Chi tiet khach hang" description="Thong tin ho so va lich su ledger cong no." />
-        <Link className="secondary-link" to="/customers">
-          Quay lai
-        </Link>
+        <div className="row-actions">
+          {canMutate && customerQuery.isSuccess ? (
+            <>
+              <Link className="primary-link" to={`/customers/${parsedCustomerId}/edit`}>
+                Sua khach hang
+              </Link>
+              <button type="button" onClick={() => void handleDeleteCustomer()}>
+                Xoa khach hang
+              </button>
+            </>
+          ) : null}
+          <Link className="secondary-link" to="/customers">
+            Quay lai
+          </Link>
+        </div>
       </div>
 
       {customerQuery.isLoading || ledgerQuery.isLoading || debtPaymentsQuery.isLoading ? (
@@ -72,6 +140,7 @@ export function CustomerDetailPage() {
       {customerQuery.isError || ledgerQuery.isError || debtPaymentsQuery.isError ? (
         <p className="state-message error-message">{errorMessage}</p>
       ) : null}
+      {deleteCustomerError ? <p className="state-message error-message">{deleteCustomerError}</p> : null}
       {customerQuery.isSuccess ? (
         <section className="summary-grid" aria-label="Thong tin khach hang">
           <div className="summary-card">
@@ -94,6 +163,10 @@ export function CustomerDetailPage() {
             <span>Dia chi</span>
             <strong>{customerQuery.data.address || "-"}</strong>
           </div>
+          <div className="summary-card wide">
+            <span>Ghi chu</span>
+            <strong>{customerQuery.data.note || "-"}</strong>
+          </div>
         </section>
       ) : null}
 
@@ -108,6 +181,42 @@ export function CustomerDetailPage() {
             ) : null}
           </div>
           {mutationError ? <p className="form-error">{mutationError}</p> : null}
+          {mutationSuccess ? <p className="state-message">{mutationSuccess}</p> : null}
+          {canMutate ? (
+            <div className="row-actions">
+              <button type="button" onClick={openBalanceAdjustment}>
+                Điều chỉnh công nợ
+              </button>
+            </div>
+          ) : null}
+          {showBalanceAdjustment && canMutate ? (
+            <form className="inline-edit-panel" onSubmit={(event) => void handleBalanceAdjustment(event)}>
+              <h4>Điều chỉnh công nợ</h4>
+              <label>
+                So du muc tieu
+                <input
+                  type="number"
+                  step="0.01"
+                  value={targetBalance}
+                  onChange={(event) => setTargetBalance(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Ghi chu
+                <textarea value={balanceAdjustmentNote} onChange={(event) => setBalanceAdjustmentNote(event.target.value)} />
+              </label>
+              {isApiError(adjustCustomerBalance.error) ? <p className="form-error">{adjustCustomerBalance.error.message}</p> : null}
+              <div className="form-actions">
+                <button type="submit" disabled={adjustCustomerBalance.isPending}>
+                  {adjustCustomerBalance.isPending ? "Dang luu..." : "Luu dieu chinh"}
+                </button>
+                <button type="button" onClick={() => setShowBalanceAdjustment(false)}>
+                  Huy
+                </button>
+              </div>
+            </form>
+          ) : null}
           {showCreateForm && canMutate ? (
             <DebtPaymentForm
               submitLabel="Them thanh toan"
@@ -116,8 +225,10 @@ export function CustomerDetailPage() {
               onCancel={() => setShowCreateForm(false)}
               onSubmit={async (payload) => {
                 try {
+                  setMutationSuccess(null);
                   await createDebtPayment.mutateAsync(payload);
                   setShowCreateForm(false);
+                  setMutationSuccess("Da them thanh toan cong no.");
                 } catch {
                   // React Query stores the error for the form-level message.
                 }
@@ -176,8 +287,10 @@ export function CustomerDetailPage() {
                 onCancel={() => setEditingPayment(null)}
                 onSubmit={async (payload) => {
                   try {
+                    setMutationSuccess(null);
                     await updateDebtPayment.mutateAsync({ paymentId: editingPayment.id, payload });
                     setEditingPayment(null);
+                    setMutationSuccess("Da cap nhat thanh toan cong no.");
                   } catch {
                     // React Query stores the error for the form-level message.
                   }

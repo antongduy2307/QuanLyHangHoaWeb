@@ -38,7 +38,7 @@ export function InvoiceEditPage() {
           errorMessage={isApiError(updateInvoice.error) ? updateInvoice.error.message : null}
           onSubmit={async (payload) => {
             const invoice = await updateInvoice.mutateAsync(payload);
-            navigate(`/sales/invoices/${invoice.id}`);
+            navigate(`/sales/invoices/${invoice.id}`, { state: { invoiceMessage: "Da cap nhat hoa don." } });
           }}
         />
       ) : null}

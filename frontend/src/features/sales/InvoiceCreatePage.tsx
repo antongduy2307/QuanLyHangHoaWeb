@@ -17,7 +17,7 @@ export function InvoiceCreatePage() {
         isSubmitting={createInvoice.isPending}
         onSubmit={async (payload) => {
           const invoice = await createInvoice.mutateAsync(payload);
-          navigate(`/sales/invoices/${invoice.id}`);
+          navigate(`/sales/invoices/${invoice.id}`, { state: { invoiceMessage: "Da tao hoa don." } });
         }}
       />
     </>

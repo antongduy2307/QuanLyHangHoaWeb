@@ -84,11 +84,11 @@ export function invoiceToFormState(invoice: Invoice): InvoiceFormState {
   };
 }
 
-function isNonNegativeMoney(value: string) {
+export function isNonNegativeMoney(value: string) {
   return moneyPattern.test(value.trim());
 }
 
-function isPositiveDecimal(value: string) {
+export function isPositiveDecimal(value: string) {
   const normalized = value.trim();
   return decimalPattern.test(normalized) && !/^0(?:\.0{1,3})?$/.test(normalized);
 }
@@ -106,10 +106,14 @@ function parseScaled(value: string, scale: number) {
   return BigInt(whole || "0") * 10n ** BigInt(scale) + BigInt(paddedFraction || "0");
 }
 
-function lineTotalCents(item: InvoiceItemFormState) {
-  const quantityThousandths = parseScaled(item.quantity, 3);
-  const priceCents = parseScaled(item.unitPrice, 2);
+export function lineEstimateCents(quantity: string, unitPrice: string) {
+  const quantityThousandths = parseScaled(quantity, 3);
+  const priceCents = parseScaled(unitPrice, 2);
   return (quantityThousandths * priceCents) / 1000n;
+}
+
+function lineTotalCents(item: InvoiceItemFormState) {
+  return lineEstimateCents(item.quantity, item.unitPrice);
 }
 
 export function estimateInvoiceTotal(formState: InvoiceFormState) {
@@ -165,11 +169,10 @@ export function validateInvoiceForm(formState: InvoiceFormState, products: Produ
     const product = productById.get(item.productId);
     if (!product) {
       errors[`${prefix}.productId`] = "Can chon hang hoa.";
-      return;
     }
-    if (!item.unitType) {
+    if (!item.unitType && product) {
       errors[`${prefix}.unitType`] = "Can chon don vi.";
-    } else if (!isCompatibleUnit(product, item.unitType)) {
+    } else if (product && !isCompatibleUnit(product, item.unitType)) {
       errors[`${prefix}.unitType`] = "Don vi khong phu hop voi hang hoa.";
     }
     if (!isPositiveDecimal(item.quantity)) {

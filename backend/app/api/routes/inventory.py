@@ -10,10 +10,12 @@ from app.api.deps import get_session, require_roles
 from app.application.inventory_service import InventoryService
 from app.domain.auth import UserRole
 from app.domain.enums import UnitType
+from app.domain.inventory import bao_to_kg
 from app.infrastructure.db.models.auth import User
 from app.infrastructure.db.models.inventory import InventoryBalance, Product
 from app.schemas.inventory import (
     InventoryBalanceResponse,
+    InventoryMovementResponse,
     ProductCreateRequest,
     ProductDeleteResponse,
     ProductPriceRequest,
@@ -21,6 +23,7 @@ from app.schemas.inventory import (
     ProductResponse,
     ProductUpdateRequest,
     StockChangeRequest,
+    StockSetRequest,
 )
 
 router = APIRouter(prefix="/inventory", tags=["inventory"])
@@ -51,6 +54,7 @@ def _balance_response(balance: InventoryBalance | None) -> InventoryBalanceRespo
         product_id=balance.product_id,
         on_hand_bao_decimal=balance.on_hand_bao_decimal,
         on_hand_bich_integer=balance.on_hand_bich_integer,
+        derived_kg_balance=bao_to_kg(balance.on_hand_bao_decimal) if balance.on_hand_bao_decimal is not None else None,
         updated_at=balance.updated_at,
     )
 
@@ -143,6 +147,11 @@ def get_product_balance(product_id: int, session: SessionDep, _: InventoryReadDe
     return _balance_response(balance)
 
 
+@router.get("/products/{product_id}/movements", response_model=list[InventoryMovementResponse])
+def list_product_movements(product_id: int, session: SessionDep, _: InventoryReadDep) -> list[InventoryMovementResponse]:
+    return [InventoryMovementResponse(**movement) for movement in InventoryService().list_product_movements(session, product_id)]
+
+
 @router.post("/products/{product_id}/stock/increase", response_model=InventoryBalanceResponse)
 def increase_stock(
     product_id: int,
@@ -152,7 +161,7 @@ def increase_stock(
 ) -> InventoryBalanceResponse:
     balance_id = _run_in_transaction(
         session,
-        lambda: InventoryService().increase_stock(session, product_id, payload.quantity, payload.unit_type).id,
+        lambda: InventoryService().increase_stock(session, product_id, payload.quantity, payload.unit_type, note=payload.note).id,
     )
     balance = session.get(InventoryBalance, balance_id)
     return _balance_response(balance)
@@ -167,7 +176,31 @@ def decrease_stock(
 ) -> InventoryBalanceResponse:
     balance_id = _run_in_transaction(
         session,
-        lambda: InventoryService().decrease_stock(session, product_id, payload.quantity, payload.unit_type).id,
+        lambda: InventoryService().decrease_stock(session, product_id, payload.quantity, payload.unit_type, note=payload.note).id,
+    )
+    balance = session.get(InventoryBalance, balance_id)
+    return _balance_response(balance)
+
+
+@router.post("/products/{product_id}/stock/set", response_model=InventoryBalanceResponse)
+def set_stock(
+    product_id: int,
+    payload: StockSetRequest,
+    session: SessionDep,
+    _: InventoryWriteDep,
+) -> InventoryBalanceResponse:
+    balance_id = _run_in_transaction(
+        session,
+        lambda: InventoryService()
+        .set_stock_to_target(
+            session,
+            product_id,
+            payload.target_quantity,
+            payload.unit_type,
+            note=payload.note,
+            adjustment_datetime=payload.adjustment_datetime,
+        )
+        .id,
     )
     balance = session.get(InventoryBalance, balance_id)
     return _balance_response(balance)

@@ -10,7 +10,7 @@ from app.application.inventory_service import InventoryService
 from app.domain.enums import UnitMode, UnitType
 from app.domain.exceptions import ValidationError
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.models.inventory import Product, ProductPrice
+from app.infrastructure.db.models.inventory import Product, ProductPrice, StockAdjustment
 
 
 @pytest.fixture
@@ -253,6 +253,42 @@ def test_stock_operations_for_bao_and_kg_use_canonical_bao_decimal(
     assert balance.on_hand_bich_integer is None
 
 
+def test_set_stock_to_target_bao_computes_delta_and_audit_row(
+    session: Session,
+    service: InventoryService,
+) -> None:
+    product = create_bao_kg_product(service, session)
+    service.increase_stock(session, product.id, "2", UnitType.BAO)
+
+    balance = service.set_stock_to_target(session, product.id, "25", UnitType.KG, note="Kiem kho thuc te")
+    adjustment = session.scalars(
+        select(StockAdjustment).where(StockAdjustment.product_id == product.id).order_by(StockAdjustment.id.desc())
+    ).first()
+
+    assert balance.on_hand_bao_decimal == Decimal("1.000")
+    assert adjustment.movement_type == "STOCK_SET"
+    assert adjustment.unit_type == "KG"
+    assert adjustment.quantity == Decimal("25.000")
+    assert adjustment.quantity_delta == Decimal("-25.000")
+    assert adjustment.balance_after == Decimal("1.000")
+    assert adjustment.note == "Kiem kho thuc te"
+
+
+def test_set_stock_to_negative_target_is_allowed(session: Session, service: InventoryService) -> None:
+    product = create_bao_kg_product(service, session)
+
+    balance = service.set_stock_to_target(session, product.id, "-12.5", UnitType.KG)
+
+    assert balance.on_hand_bao_decimal == Decimal("-0.500")
+
+
+def test_set_stock_to_unchanged_target_is_rejected(session: Session, service: InventoryService) -> None:
+    product = create_bao_kg_product(service, session)
+
+    with pytest.raises(ValidationError):
+        service.set_stock_to_target(session, product.id, "0", UnitType.BAO)
+
+
 def test_bich_stock_and_negative_stock_persist(session: Session, service: InventoryService) -> None:
     product = service.create_product(
         session,
@@ -277,3 +313,10 @@ def test_list_products_excludes_inactive_by_default(session: Session, service: I
 
     assert service.list_products(session) == [active]
     assert {product.id for product in service.list_products(session, include_inactive=True)} == {active.id, inactive.id}
+
+
+def test_list_products_searches_name_only(session: Session, service: InventoryService) -> None:
+    product = create_bao_kg_product(service, session, code="CODE-ONLY", name="Rice Name")
+
+    assert service.list_products(session, search="Rice") == [product]
+    assert service.list_products(session, search="CODE-ONLY") == []

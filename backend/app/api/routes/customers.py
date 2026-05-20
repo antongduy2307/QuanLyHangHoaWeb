@@ -6,13 +6,15 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_session, require_roles
-from app.application.customer_service import CustomerService, DebtPaymentResult
+from app.application.customer_service import BalanceAdjustmentResult, CustomerService, DebtPaymentResult
 from app.domain.auth import UserRole
 from app.domain.exceptions import NotFoundError
 from app.infrastructure.db.models.auth import User
 from app.infrastructure.db.models.customer import CustomerBalanceLedger, DebtPayment
 from app.infrastructure.db.repositories.customer import CustomerRepository
 from app.schemas.customers import (
+    BalanceAdjustmentRequest,
+    BalanceAdjustmentResponse,
     CustomerCreateRequest,
     CustomerDeleteResponse,
     CustomerLedgerResponse,
@@ -53,6 +55,13 @@ def _debt_payment_result_response(result: DebtPaymentResult, current_balance) ->
         payment=_debt_payment_response(result.payment),
         ledger=_ledger_response(result.ledger) if result.ledger is not None else None,
         current_balance=current_balance,
+    )
+
+
+def _balance_adjustment_response(result: BalanceAdjustmentResult) -> BalanceAdjustmentResponse:
+    return BalanceAdjustmentResponse(
+        customer=CustomerResponse.model_validate(result.customer),
+        ledger=_ledger_response(result.ledger),
     )
 
 
@@ -133,6 +142,35 @@ def update_customer(
 def delete_customer(customer_id: int, session: SessionDep, _: CustomerWriteDep) -> CustomerDeleteResponse:
     result = _run_in_transaction(session, lambda: CustomerService().delete_customer(session, customer_id))
     return CustomerDeleteResponse(customer_id=result.customer_id, action=result.action)
+
+
+@router.post(
+    "/{customer_id}/balance-adjustments",
+    response_model=BalanceAdjustmentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_balance_adjustment(
+    customer_id: int,
+    payload: BalanceAdjustmentRequest,
+    session: SessionDep,
+    _: CustomerWriteDep,
+) -> BalanceAdjustmentResponse:
+    service = CustomerService()
+
+    def operation() -> tuple[int, int]:
+        result = service.adjust_customer_balance(
+            session,
+            customer_id,
+            target_balance=payload.target_balance,
+            note=payload.note,
+            adjustment_datetime=payload.adjustment_datetime,
+        )
+        return result.customer_id, result.ledger_id
+
+    adjusted_customer_id, ledger_id = _run_in_transaction(session, operation)
+    customer = service.get_customer(session, adjusted_customer_id)
+    ledger = CustomerRepository().get_ledger(session, ledger_id)
+    return _balance_adjustment_response(BalanceAdjustmentResult(customer=customer, ledger=ledger))
 
 
 @router.get("/{customer_id}/ledger", response_model=list[CustomerLedgerResponse])

@@ -12,6 +12,8 @@ from app.domain.customer import OPENING_BALANCE_DATETIME
 from app.domain.exceptions import ValidationError
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.models.customer import Customer, CustomerBalanceLedger, DebtPayment
+from app.infrastructure.db.models.returns import ReturnInvoice
+from app.infrastructure.db.models.sales import Invoice
 
 
 @pytest.fixture
@@ -92,6 +94,49 @@ def test_update_customer_profile_and_clear_note(session: Session, service: Custo
     assert updated.address is None
     assert updated.note is None
     assert updated.total_sales == Decimal("20.00")
+
+
+def test_adjust_customer_balance_appends_ledger_and_recomputes(session: Session, service: CustomerService) -> None:
+    customer = service.create_customer(session, customer_name="Customer", opening_balance="100000")
+
+    result = service.adjust_customer_balance(
+        session,
+        customer.id,
+        target_balance="250000",
+        note="manual correction",
+        adjustment_datetime=datetime(2026, 5, 19, 10, 0, 0),
+    )
+    ledgers = ledger_rows(session, customer.id)
+
+    assert result.customer_id == customer.id
+    assert result.ledger_id == result.ledger.id
+    assert result.ledger.event_type == "BALANCE_ADJUSTMENT"
+    assert result.ledger.ref_type == "BALANCE_ADJUSTMENT"
+    assert result.ledger.amount_delta == Decimal("150000.00")
+    assert result.ledger.balance_after == Decimal("250000.00")
+    assert result.ledger.note == "manual correction"
+    assert customer.current_balance == Decimal("250000.00")
+    assert [row.event_type for row in ledgers] == ["OPENING_BALANCE", "BALANCE_ADJUSTMENT"]
+
+
+def test_adjust_customer_balance_without_trade_history_uses_opening_datetime(
+    session: Session,
+    service: CustomerService,
+) -> None:
+    customer = service.create_customer(session, customer_name="Customer")
+
+    result = service.adjust_customer_balance(session, customer.id, target_balance="-50000")
+
+    assert result.ledger.transaction_datetime == OPENING_BALANCE_DATETIME
+    assert result.ledger.amount_delta == Decimal("-50000.00")
+    assert customer.current_balance == Decimal("-50000.00")
+
+
+def test_adjust_customer_balance_rejects_unchanged_target(session: Session, service: CustomerService) -> None:
+    customer = service.create_customer(session, customer_name="Customer", opening_balance="100")
+
+    with pytest.raises(ValidationError):
+        service.adjust_customer_balance(session, customer.id, target_balance="100")
 
 
 def test_standalone_debt_payment_reduces_balance(session: Session, service: CustomerService) -> None:
@@ -190,6 +235,66 @@ def test_unused_customer_hard_deletes(session: Session, service: CustomerService
 
 def test_customer_with_ledger_history_deactivates(session: Session, service: CustomerService) -> None:
     customer = service.create_customer(session, customer_name="Customer", opening_balance="1")
+
+    result = service.delete_customer(session, customer.id)
+
+    assert result.action == "deactivated"
+    assert customer.is_active is False
+
+
+def test_customer_with_invoice_history_deactivates_without_ledger(session: Session, service: CustomerService) -> None:
+    customer = service.create_customer(session, customer_name="Customer")
+    session.add(
+        Invoice(
+            invoice_code="HD-HISTORY",
+            customer_id=customer.id,
+            customer_snapshot_name=customer.customer_name,
+            invoice_datetime=datetime(2026, 5, 19, 8, 0, 0),
+            total_amount=Decimal("0.00"),
+            paid_amount=Decimal("0.00"),
+            status="COMPLETED",
+        )
+    )
+    session.flush()
+
+    result = service.delete_customer(session, customer.id)
+
+    assert result.action == "deactivated"
+    assert customer.is_active is False
+
+
+def test_customer_with_return_history_deactivates_without_ledger(session: Session, service: CustomerService) -> None:
+    customer = service.create_customer(session, customer_name="Customer")
+    session.add(
+        ReturnInvoice(
+            return_code="TR-HISTORY",
+            customer_id=customer.id,
+            customer_snapshot_name=customer.customer_name,
+            is_quick_return=True,
+            return_datetime=datetime(2026, 5, 19, 8, 0, 0),
+            total_amount=Decimal("0.00"),
+            handling_mode="REFUND_NOW",
+        )
+    )
+    session.flush()
+
+    result = service.delete_customer(session, customer.id)
+
+    assert result.action == "deactivated"
+    assert customer.is_active is False
+
+
+def test_customer_with_debt_payment_history_deactivates_without_ledger(session: Session, service: CustomerService) -> None:
+    customer = service.create_customer(session, customer_name="Customer")
+    session.add(
+        DebtPayment(
+            customer_id=customer.id,
+            amount=Decimal("100.00"),
+            payment_datetime=datetime(2026, 5, 19, 8, 0, 0),
+            is_deleted=True,
+        )
+    )
+    session.flush()
 
     result = service.delete_customer(session, customer.id)
 

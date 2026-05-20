@@ -118,6 +118,41 @@ def test_create_customer_with_opening_balance_and_ledger(client: TestClient, ses
     assert ledger_response.json()[0]["event_type"] == "OPENING_BALANCE"
 
 
+def test_balance_adjustment_endpoint_appends_ledger_and_recomputes(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    customer = create_customer(client, headers, opening_balance="100000")
+
+    response = client.post(
+        f"/api/customers/{customer['id']}/balance-adjustments",
+        headers=headers,
+        json={"target_balance": "250000", "note": "manual correction"},
+    )
+    ledger_response = client.get(f"/api/customers/{customer['id']}/ledger", headers=headers)
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["customer"]["current_balance"] == "250000.00"
+    assert body["ledger"]["event_type"] == "BALANCE_ADJUSTMENT"
+    assert body["ledger"]["amount_delta"] == "150000.00"
+    assert body["ledger"]["balance_after"] == "250000.00"
+    assert body["ledger"]["note"] == "manual correction"
+    assert [row["event_type"] for row in ledger_response.json()] == ["OPENING_BALANCE", "BALANCE_ADJUSTMENT"]
+
+
+def test_read_only_cannot_create_balance_adjustment(client: TestClient, session_factory) -> None:
+    owner_headers = auth_headers(client, session_factory, UserRole.OWNER)
+    read_headers = auth_headers(client, session_factory, UserRole.READ_ONLY)
+    customer = create_customer(client, owner_headers, opening_balance="100000")
+
+    response = client.post(
+        f"/api/customers/{customer['id']}/balance-adjustments",
+        headers=read_headers,
+        json={"target_balance": "250000"},
+    )
+
+    assert response.status_code == 403
+
+
 def test_list_excludes_inactive_by_default_and_get_customer(client: TestClient, session_factory) -> None:
     headers = auth_headers(client, session_factory, UserRole.OWNER)
     active = create_customer(client, headers, "Active")

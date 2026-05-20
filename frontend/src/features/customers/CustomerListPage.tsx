@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import { useAuth } from "../../auth/useAuth";
@@ -17,7 +17,10 @@ export function CustomerListPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [onlyPositiveDebt, setOnlyPositiveDebt] = useState(false);
-  const customersQuery = useCustomers(search, onlyPositiveDebt);
+  const [includeInactive, setIncludeInactive] = useState(false);
+  const location = useLocation();
+  const locationState = location.state as { customerDeleteMessage?: string } | null;
+  const customersQuery = useCustomers(search, onlyPositiveDebt, includeInactive);
   const canCreate = user ? canWriteCustomers(user.role) : false;
   const errorMessage = isApiError(customersQuery.error)
     ? customersQuery.error.message
@@ -47,8 +50,17 @@ export function CustomerListPage() {
           />
           Chi hien khach dang no
         </label>
+        <label className="inline-choice filter-choice">
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(event) => setIncludeInactive(event.target.checked)}
+          />
+          Hien khach ngung dung
+        </label>
       </section>
 
+      {locationState?.customerDeleteMessage ? <p className="state-message">{locationState.customerDeleteMessage}</p> : null}
       {customersQuery.isLoading ? <p className="state-message">Dang tai danh sach khach hang...</p> : null}
       {customersQuery.isError ? <p className="state-message error-message">{errorMessage}</p> : null}
       {customersQuery.isSuccess && customersQuery.data.length === 0 ? (
