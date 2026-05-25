@@ -2,6 +2,7 @@ import { apiRequest } from "./client";
 import type { Invoice, InvoiceCreatePayload } from "./types";
 
 export type ListInvoicesParams = {
+  customerId?: number;
   search?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -9,6 +10,9 @@ export type ListInvoicesParams = {
 
 export function listInvoices(params: ListInvoicesParams = {}) {
   const searchParams = new URLSearchParams();
+  if (params.customerId) {
+    searchParams.set("customer_id", String(params.customerId));
+  }
   if (params.search?.trim()) {
     searchParams.set("search", params.search.trim());
   }

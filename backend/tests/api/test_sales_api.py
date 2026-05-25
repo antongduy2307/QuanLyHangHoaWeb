@@ -19,6 +19,7 @@ from app.domain.enums import UnitMode, UnitType
 from app.infrastructure.db.base import Base
 from app.infrastructure.db.models.customer import Customer
 from app.infrastructure.db.models.inventory import InventoryBalance
+from app.infrastructure.db.models.orders import OrderRequest
 from app.main import app
 
 
@@ -96,6 +97,7 @@ def seed_customer(session_factory, *, name: str = "Customer", total_sales: str =
 def invoice_payload(product_id: int, *, customer_id: int | None = None, quantity: str = "1", paid: str = "100") -> dict:
     return {
         "customer_id": customer_id,
+        "source_order_id": None,
         "customer_snapshot_name": None if customer_id is not None else "Walk In",
         "invoice_datetime": datetime(2026, 1, 2, 9, 0, tzinfo=timezone.utc).isoformat(),
         "paid_amount": paid,
@@ -111,6 +113,17 @@ def invoice_payload(product_id: int, *, customer_id: int | None = None, quantity
     }
 
 
+def order_payload(product_id: int, *, customer_id: int | None = None, quantity: str = "1") -> dict:
+    return {
+        "customer_id": customer_id,
+        "customer_snapshot_name": None if customer_id is not None else "",
+        "order_datetime": datetime(2026, 1, 2, 8, 0, tzinfo=timezone.utc).isoformat(),
+        "required_delivery_datetime": None,
+        "items": [{"product_id": product_id, "unit_type": "BAO", "quantity": quantity}],
+        "note": "Can giao som",
+    }
+
+
 def get_balance(session_factory, product_id: int) -> Decimal:
     with session_factory() as session:
         balance = session.query(InventoryBalance).filter_by(product_id=product_id).one()
@@ -120,6 +133,11 @@ def get_balance(session_factory, product_id: int) -> Decimal:
 def get_customer(session_factory, customer_id: int) -> Customer:
     with session_factory() as session:
         return session.get(Customer, customer_id)
+
+
+def get_order(session_factory, order_id: int) -> OrderRequest:
+    with session_factory() as session:
+        return session.get(OrderRequest, order_id)
 
 
 def test_anonymous_and_invalid_sales_access_return_401(client: TestClient) -> None:
@@ -314,8 +332,52 @@ def test_list_invoices_searches_code_and_customer_snapshot(client: TestClient, s
     code_response = client.get("/api/sales/invoices", headers=headers, params={"search": customer_invoice["invoice_code"]})
     customer_response = client.get("/api/sales/invoices", headers=headers, params={"search": "Minh Anh"})
     miss_response = client.get("/api/sales/invoices", headers=headers, params={"search": "Khong Co"})
+    date_response = client.get(
+        "/api/sales/invoices",
+        headers=headers,
+        params={"date_from": "2026-01-01T00:00:00+00:00", "date_to": "2026-12-31T23:59:59+00:00"},
+    )
 
     assert [row["id"] for row in code_response.json()] == [customer_invoice["id"]]
     assert [row["id"] for row in customer_response.json()] == [customer_invoice["id"]]
     assert miss_response.json() == []
+    assert {row["id"] for row in date_response.json()} == {customer_invoice["id"], walk_in_invoice["id"]}
     assert walk_in_invoice["id"] not in {row["id"] for row in customer_response.json()}
+
+
+def test_create_invoice_from_order_converts_order_only_after_success(client: TestClient, session_factory) -> None:
+    product_id = seed_product(session_factory)
+    customer_id = seed_customer(session_factory, name="Cong ty Minh Anh")
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    order = client.post("/api/orders", headers=headers, json=order_payload(product_id, customer_id=customer_id, quantity="2")).json()
+
+    preloaded = get_order(session_factory, order["id"])
+    assert preloaded.status == "OPEN"
+
+    response = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json={**invoice_payload(product_id, customer_id=customer_id, quantity="2", paid="20"), "source_order_id": order["id"]},
+    )
+
+    assert response.status_code == 201
+    converted = get_order(session_factory, order["id"])
+    assert converted.status == "CONVERTED"
+    assert converted.source_invoice_id == response.json()["id"]
+
+
+def test_failed_invoice_from_order_leaves_order_active(client: TestClient, session_factory) -> None:
+    product_id = seed_product(session_factory)
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    order = client.post("/api/orders", headers=headers, json=order_payload(product_id, customer_id=None, quantity="2")).json()
+
+    response = client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json={**invoice_payload(product_id, customer_id=None, quantity="2", paid="0"), "source_order_id": order["id"]},
+    )
+
+    assert response.status_code == 422
+    still_active = get_order(session_factory, order["id"])
+    assert still_active.status == "OPEN"
+    assert still_active.source_invoice_id is None

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_session, require_roles
@@ -12,10 +13,13 @@ from app.domain.auth import UserRole
 from app.infrastructure.db.models.auth import User
 from app.schemas.reports import (
     CustomerDebtReportRow,
+    DashboardOverviewResponse,
     DashboardSummaryResponse,
     InventorySummaryRow,
     ReturnsSummaryResponse,
     SalesSummaryResponse,
+    SalesTimeseriesResponse,
+    TopProductReportRow,
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -26,6 +30,11 @@ ReportsReadDep = Annotated[User, Depends(require_roles(UserRole.OWNER, UserRole.
 @router.get("/dashboard-summary", response_model=DashboardSummaryResponse)
 def dashboard_summary(session: SessionDep, _: ReportsReadDep) -> DashboardSummaryResponse:
     return ReportingService().dashboard_summary(session)
+
+
+@router.get("/overview", response_model=DashboardOverviewResponse)
+def dashboard_overview(session: SessionDep, _: ReportsReadDep) -> DashboardOverviewResponse:
+    return ReportingService().dashboard_overview(session)
 
 
 @router.get("/customer-debts", response_model=list[CustomerDebtReportRow])
@@ -46,6 +55,27 @@ def sales_summary(
     date_to: date | None = None,
 ) -> SalesSummaryResponse:
     return ReportingService().sales_summary(session, date_from=date_from, date_to=date_to)
+
+
+@router.get("/sales-timeseries", response_model=SalesTimeseriesResponse)
+def sales_timeseries(
+    session: SessionDep,
+    _: ReportsReadDep,
+    period: Literal["today", "yesterday", "last_7_days", "this_month", "last_month"],
+    granularity: Literal["hour", "day"],
+) -> SalesTimeseriesResponse:
+    return ReportingService().sales_timeseries(session, period=period, granularity=granularity)
+
+
+@router.get("/top-products", response_model=list[TopProductReportRow])
+def top_products(
+    session: SessionDep,
+    _: ReportsReadDep,
+    period: Literal["today", "yesterday", "last_7_days", "this_month", "last_month"],
+    limit: int = Query(default=10, ge=1),
+    metric: Literal["revenue"] = "revenue",
+) -> list[TopProductReportRow]:
+    return ReportingService().top_products(session, period=period, limit=limit, metric=metric)
 
 
 @router.get("/returns-summary", response_model=ReturnsSummaryResponse)

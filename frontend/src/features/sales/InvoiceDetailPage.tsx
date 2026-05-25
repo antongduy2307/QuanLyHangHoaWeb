@@ -3,13 +3,21 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import { useAuth } from "../../auth/useAuth";
-import { PageHeader } from "../../components/PageHeader";
+import { adminRoutes } from "../../domain/routes";
 import { formatDateTime } from "../../domain/dates";
 import { formatQuantity, invoiceStatusLabel, unitLabel } from "../../domain/documents";
 import { formatMoney } from "../../domain/money";
+import { InventoryModuleShell } from "../inventory/InventoryModuleShell";
 import { useDeleteInvoice, useInvoice } from "./invoiceQueries";
 
 const writeRoles = ["owner", "admin"] as const;
+
+type InvoiceDetailReturnState = {
+  invoiceMessage?: string;
+  returnTo?: string;
+  returnLabel?: string;
+  returnState?: unknown;
+};
 
 export function InvoiceDetailPage() {
   const { invoiceId } = useParams();
@@ -17,124 +25,153 @@ export function InvoiceDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const locationState = location.state as { invoiceMessage?: string } | null;
+  const locationState = (location.state as InvoiceDetailReturnState | null) ?? null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const invoiceQuery = useInvoice(parsedInvoiceId);
   const deleteInvoice = useDeleteInvoice(parsedInvoiceId);
-  const errorMessage = isApiError(invoiceQuery.error) ? invoiceQuery.error.message : "Khong the tai chi tiet hoa don.";
+  const errorMessage = isApiError(invoiceQuery.error) ? invoiceQuery.error.message : "Không thể tải chi tiết hóa đơn.";
   const canMutate = user ? writeRoles.some((role) => role === user.role) : false;
 
   if (!Number.isInteger(parsedInvoiceId) || parsedInvoiceId <= 0) {
-    return <p className="state-message error-message">Ma hoa don khong hop le.</p>;
+    return <p className="state-message error-message">Mã hóa đơn không hợp lệ.</p>;
   }
 
   async function handleDelete() {
-    if (!window.confirm("Xoa hoa don nay?")) {
+    if (!window.confirm("Xóa hóa đơn này?")) {
       return;
     }
     setDeleteError(null);
     try {
       await deleteInvoice.mutateAsync();
-      navigate("/sales/invoices", { state: { invoiceMessage: "Da xoa hoa don." } });
+      navigate("/sales/invoices", { state: { invoiceMessage: "Đã xóa hóa đơn." } });
     } catch (error) {
-      setDeleteError(isApiError(error) ? error.message : "Khong the xoa hoa don.");
+      setDeleteError(isApiError(error) ? error.message : "Không thể xóa hóa đơn.");
     }
   }
 
+  const invoice = invoiceQuery.data;
+  const remainingAmount = invoice
+    ? formatMoney(String(Number(invoice.total_amount) - Number(invoice.paid_amount)))
+    : formatMoney("0");
+  const backTo = locationState?.returnTo || "/sales/invoices";
+  const backLabel = locationState?.returnLabel || "Quay lại";
+
   return (
-    <>
-      <div className="page-title-row">
-        <PageHeader title="Chi tiet hoa don" description="Thong tin hoa don va cac dong hang." />
+    <InventoryModuleShell
+      title="Chi tiết hóa đơn"
+      description="Theo dõi hóa đơn bán hàng, thanh toán và các dòng hàng đã ghi nhận."
+      activeNavPath={adminRoutes.invoices}
+      contentClassName="inventory-detail-layout inventory-detail-layout--unified invoice-detail-page"
+      compactHero
+      hideDescription
+      heroActions={
         <div className="row-actions">
           {canMutate ? (
             <>
-              <Link className="primary-link" to={`/sales/invoices/${parsedInvoiceId}/edit`}>
-                Sua hoa don
+              <Link
+                className="inventory-solid-button"
+                to="/sales/invoices/new"
+                state={{
+                  editInvoiceDraft: {
+                    invoiceId: parsedInvoiceId,
+                    returnTo: `/sales/invoices/${parsedInvoiceId}`,
+                    returnLabel: "Quay lại hóa đơn",
+                    detailState: {
+                      returnTo: locationState?.returnTo || "/sales/invoices",
+                      returnLabel: locationState?.returnLabel || "Quay lại",
+                      returnState: locationState?.returnState,
+                    },
+                  },
+                }}
+              >
+                Sửa hóa đơn
               </Link>
-              <button type="button" onClick={() => void handleDelete()}>
-                Xoa hoa don
+              <button className="inventory-ghost-button inventory-ghost-button--danger" type="button" onClick={() => void handleDelete()}>
+                Xóa hóa đơn
               </button>
             </>
           ) : null}
-          <Link className="secondary-link" to="/sales/invoices">
-            Quay lai
+          <Link className="inventory-ghost-button" to={backTo} state={locationState?.returnState}>
+            {backLabel}
           </Link>
         </div>
-      </div>
-
-      {invoiceQuery.isLoading ? <p className="state-message">Dang tai chi tiet hoa don...</p> : null}
+      }
+    >
+      {invoiceQuery.isLoading ? <p className="state-message">Đang tải chi tiết hóa đơn...</p> : null}
       {locationState?.invoiceMessage ? <p className="state-message">{locationState.invoiceMessage}</p> : null}
       {invoiceQuery.isError ? <p className="state-message error-message">{errorMessage}</p> : null}
       {deleteError ? <p className="state-message error-message">{deleteError}</p> : null}
-      {invoiceQuery.isSuccess ? (
+      {invoice ? (
         <>
-          <section className="summary-grid" aria-label="Thong tin hoa don">
+          <section className="summary-grid" aria-label="Thông tin hóa đơn">
             <div className="summary-card">
-              <span>Ma hoa don</span>
-              <strong>{invoiceQuery.data.invoice_code}</strong>
+              <span>Mã hóa đơn</span>
+              <strong>{invoice.invoice_code}</strong>
             </div>
             <div className="summary-card">
-              <span>Thoi gian</span>
-              <strong>{formatDateTime(invoiceQuery.data.invoice_datetime)}</strong>
+              <span>Thời gian</span>
+              <strong>{formatDateTime(invoice.invoice_datetime)}</strong>
             </div>
             <div className="summary-card">
-              <span>Khach hang</span>
-              <strong>{invoiceQuery.data.customer_snapshot_name}</strong>
+              <span>Khách hàng</span>
+              <strong>{invoice.customer_snapshot_name}</strong>
             </div>
             <div className="summary-card">
-              <span>Tong tien</span>
-              <strong>{formatMoney(invoiceQuery.data.total_amount)}</strong>
+              <span>Tổng tiền</span>
+              <strong>{formatMoney(invoice.total_amount)}</strong>
             </div>
             <div className="summary-card">
-              <span>Da thanh toan</span>
-              <strong>{formatMoney(invoiceQuery.data.paid_amount)}</strong>
+              <span>Đã thanh toán</span>
+              <strong>{formatMoney(invoice.paid_amount)}</strong>
             </div>
             <div className="summary-card">
-              <span>Trang thai</span>
-              <strong>{invoiceStatusLabel(invoiceQuery.data.status)}</strong>
+              <span>Còn lại</span>
+              <strong>{remainingAmount}</strong>
             </div>
             <div className="summary-card">
-              <span>Phuong thuc</span>
-              <strong>{invoiceQuery.data.payment_method || "-"}</strong>
-            </div>
-            <div className="summary-card">
-              <span>Con lai</span>
-              <strong>{formatMoney(String(Number(invoiceQuery.data.total_amount) - Number(invoiceQuery.data.paid_amount)))}</strong>
+              <span>Trạng thái</span>
+              <strong>{invoiceStatusLabel(invoice.status)}</strong>
             </div>
             <div className="summary-card wide">
-              <span>Ghi chu</span>
-              <strong>{invoiceQuery.data.note || "-"}</strong>
+              <span>Ghi chú</span>
+              <strong>{invoice.note || "-"}</strong>
             </div>
           </section>
 
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Ma hang</th>
-                  <th>Ten hang</th>
-                  <th>Don vi</th>
-                  <th>So luong</th>
-                  <th>Don gia</th>
-                  <th>Thanh tien</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceQuery.data.items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.product_code_snapshot}</td>
-                    <td>{item.product_name_snapshot}</td>
-                    <td>{unitLabel(item.unit_type)}</td>
-                    <td>{formatQuantity(item.quantity)}</td>
-                    <td>{formatMoney(item.unit_price)}</td>
-                    <td>{formatMoney(item.line_total)}</td>
+          <section className="detail-section" aria-label="Danh sách hàng hóa">
+            <div className="section-title-row">
+              <h3>Hàng hóa</h3>
+              <p className="muted-text">{invoice.items.length} dòng hàng</p>
+            </div>
+            <div className="table-wrap inventory-table-wrap invoice-detail-table-wrap">
+              <table className="data-table inventory-data-table">
+                <thead>
+                  <tr>
+                    <th>Mã hàng</th>
+                    <th>Tên hàng</th>
+                    <th>Đơn vị</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {invoice.items.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.product_code_snapshot}</td>
+                      <td>{item.product_name_snapshot}</td>
+                      <td>{unitLabel(item.unit_type)}</td>
+                      <td>{formatQuantity(item.quantity)}</td>
+                      <td>{formatMoney(item.unit_price)}</td>
+                      <td>{formatMoney(item.line_total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </>
       ) : null}
-    </>
+    </InventoryModuleShell>
   );
 }

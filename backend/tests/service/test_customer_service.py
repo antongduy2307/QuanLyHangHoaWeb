@@ -86,14 +86,13 @@ def test_update_customer_profile_and_clear_note(session: Session, service: Custo
         phone="0909",
         address=" ",
         note=" ",
-        total_sales="20",
     )
 
     assert updated.customer_name == "New"
     assert updated.phone == "0909"
     assert updated.address is None
     assert updated.note is None
-    assert updated.total_sales == Decimal("20.00")
+    assert updated.total_sales == Decimal("10.00")
 
 
 def test_adjust_customer_balance_appends_ledger_and_recomputes(session: Session, service: CustomerService) -> None:
@@ -361,3 +360,11 @@ def test_list_customers_filters_inactive_and_positive_debt(session: Session, ser
         zero.id,
         inactive.id,
     }
+
+
+def test_list_customers_searches_name_and_phone(session: Session, service: CustomerService) -> None:
+    by_name = service.create_customer(session, customer_name="Nguyen Van A", phone="0901000001")
+    by_phone = service.create_customer(session, customer_name="Tran B", phone="0902000002")
+
+    assert [customer.id for customer in service.list_customers(session, search="nguyen")] == [by_name.id]
+    assert [customer.id for customer in service.list_customers(session, search="090200")] == [by_phone.id]

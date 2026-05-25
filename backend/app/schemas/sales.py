@@ -24,6 +24,7 @@ class InvoiceCreateInput:
     customer_id: int | None
     invoice_datetime: datetime
     items: tuple[InvoiceItemInput, ...]
+    source_order_id: int | None = None
     paid_amount: Decimal | int | str = Decimal("0")
     customer_snapshot_name: str | None = None
     payment_method: PaymentMethod | str | None = None
@@ -41,6 +42,7 @@ class InvoiceItemRequest(BaseModel):
 
 class InvoiceCreateRequest(BaseModel):
     customer_id: int | None = None
+    source_order_id: int | None = None
     customer_snapshot_name: str | None = None
     invoice_datetime: datetime
     items: list[InvoiceItemRequest] = Field(min_length=1)

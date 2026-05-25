@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_session, require_roles
+from app.application.order_service import OrderService
 from app.application.sales_service import SalesService
 from app.domain.auth import UserRole
 from app.infrastructure.db.models.auth import User
@@ -114,6 +115,8 @@ def create_invoice(payload: InvoiceCreateRequest, session: SessionDep, _: SalesW
             payment_method=payload.payment_method,
             note=payload.note,
         )
+        if payload.source_order_id is not None:
+            OrderService().mark_converted(session, payload.source_order_id, invoice.id)
         return invoice.id
 
     invoice_id = _run_in_transaction(session, operation)

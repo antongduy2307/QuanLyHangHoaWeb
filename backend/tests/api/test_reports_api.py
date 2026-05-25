@@ -80,6 +80,29 @@ def seed_product(session_factory, *, code: str = "report-product", stock: str = 
         return product.id
 
 
+def seed_named_product(
+    session_factory,
+    *,
+    code: str,
+    name: str,
+    stock: str = "10",
+    unit_mode: UnitMode = UnitMode.BAO_KG,
+    bao_price: str = "100.00",
+) -> int:
+    with session_factory() as session:
+        service = InventoryService()
+        product = service.create_product(
+            session,
+            product_code_base=code,
+            product_name=name,
+            unit_mode=unit_mode,
+            enabled_prices={UnitType.BAO: Decimal(bao_price), UnitType.KG: Decimal("10.00")},
+        )
+        service.increase_stock(session, product.id, Decimal(stock), UnitType.BAO)
+        session.commit()
+        return product.id
+
+
 def seed_customer(session_factory, *, name: str, opening_balance: str = "0", total_sales: str = "0") -> int:
     with session_factory() as session:
         customer = CustomerService().create_customer(
@@ -99,7 +122,9 @@ def invoice_payload(
     customer_id: int | None = None,
     invoice_date: date,
     quantity: str = "1",
+    unit_price: str = "100.00",
     paid: str = "100",
+    unit_type: str = "BAO",
 ) -> dict:
     return {
         "customer_id": customer_id,
@@ -107,7 +132,7 @@ def invoice_payload(
         "invoice_datetime": datetime.combine(invoice_date, time(9, 0), tzinfo=timezone.utc).isoformat(),
         "paid_amount": paid,
         "payment_method": "CASH",
-        "items": [{"product_id": product_id, "unit_type": "BAO", "quantity": quantity, "unit_price": "100.00"}],
+        "items": [{"product_id": product_id, "unit_type": unit_type, "quantity": quantity, "unit_price": unit_price}],
     }
 
 
@@ -169,6 +194,190 @@ def test_dashboard_summary_returns_seeded_values(client: TestClient, session_fac
     assert body["today_return_total"] == "100.00"
     assert body["invoice_count_today"] == 1
     assert body["positive_debt_customer_count"] == 2
+
+
+def test_dashboard_overview_returns_expected_totals_and_counts(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    seed_report_documents(client, session_factory, headers)
+
+    response = client.get("/api/reports/overview", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["today_invoice_count"] == 1
+    assert body["today_sales_total"] == "100.00"
+    assert body["today_return_count"] == 1
+    assert body["today_return_total"] == "100.00"
+    assert body["this_month_sales_total"] == "100.00"
+    assert body["last_month_sales_total"] == "0"
+    assert body["last_7_days_sales_total"] == "100.00"
+    assert body["current_customer_debt"] == "90.00"
+    assert body["positive_debt_customer_count"] == 2
+
+
+def test_dashboard_overview_previous_month_total_works(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product_id = seed_product(session_factory)
+    today = date.today()
+    first_of_month = today.replace(day=1)
+    previous_month_day = first_of_month - date.resolution
+    previous_month_target = previous_month_day.replace(day=min(previous_month_day.day, 15))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=previous_month_target, paid="100"))
+
+    response = client.get("/api/reports/overview", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["today_invoice_count"] == 0
+    assert body["today_sales_total"] == "0"
+    assert body["this_month_sales_total"] == "0"
+    assert body["last_month_sales_total"] == "100.00"
+    assert body["last_7_days_sales_total"] == "0"
+
+
+def test_sales_timeseries_today_hour_buckets_are_correct(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product_id = seed_product(session_factory)
+    today = date.today()
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=today, paid="100"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=today, paid="100"))
+
+    response = client.get("/api/reports/sales-timeseries?period=today&granularity=hour", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["period"] == "today"
+    assert body["granularity"] == "hour"
+    assert len(body["buckets"]) == 24
+    nine_am_bucket = next(bucket for bucket in body["buckets"] if bucket["label"] == "09:00")
+    assert nine_am_bucket["sales_total"] == "200.00"
+    assert nine_am_bucket["invoice_count"] == 2
+    empty_bucket = next(bucket for bucket in body["buckets"] if bucket["label"] == "08:00")
+    assert empty_bucket["sales_total"] == "0"
+    assert empty_bucket["invoice_count"] == 0
+
+
+def test_sales_timeseries_last_7_days_day_buckets_are_correct(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product_id = seed_product(session_factory)
+    today = date.today()
+    first_day = today - date.resolution * 6
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=first_day, paid="100"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=today, paid="100"))
+
+    response = client.get("/api/reports/sales-timeseries?period=last_7_days&granularity=day", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["period"] == "last_7_days"
+    assert body["granularity"] == "day"
+    assert len(body["buckets"]) == 7
+    assert body["buckets"][0]["label"] == first_day.isoformat()
+    assert body["buckets"][-1]["label"] == today.isoformat()
+    assert body["buckets"][0]["sales_total"] == "100.00"
+    assert body["buckets"][0]["invoice_count"] == 1
+    assert body["buckets"][-1]["sales_total"] == "100.00"
+    assert body["buckets"][-1]["invoice_count"] == 1
+
+
+def test_top_products_aggregate_revenue_correctly(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    rice_id = seed_named_product(session_factory, code="RICE-01", name="Rice Premium")
+    oil_id = seed_named_product(session_factory, code="OIL-01", name="Cooking Oil")
+    today = date.today()
+
+    client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(rice_id, invoice_date=today, quantity="2", unit_price="120.00", paid="240.00"),
+    )
+    client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(rice_id, invoice_date=today, quantity="1.5", unit_price="80.00", paid="120.00"),
+    )
+    client.post(
+        "/api/sales/invoices",
+        headers=headers,
+        json=invoice_payload(oil_id, invoice_date=today, quantity="1", unit_price="200.00", paid="200.00"),
+    )
+
+    response = client.get("/api/reports/top-products?period=today", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body[0] == {
+        "product_id": rice_id,
+        "product_code": "RICE-01",
+        "product_name": "Rice Premium",
+        "unit_type": "BAO",
+        "total_quantity": "3.500",
+        "total_revenue": "360.00",
+        "invoice_count": 2,
+    }
+    assert body[1]["product_id"] == oil_id
+    assert body[1]["total_revenue"] == "200.00"
+
+
+def test_top_products_are_sorted_by_revenue_desc(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    low_id = seed_named_product(session_factory, code="LOW-01", name="Low Revenue")
+    high_id = seed_named_product(session_factory, code="HIGH-01", name="High Revenue")
+    mid_id = seed_named_product(session_factory, code="MID-01", name="Mid Revenue")
+    today = date.today()
+
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(low_id, invoice_date=today, unit_price="90.00", paid="90.00"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(high_id, invoice_date=today, unit_price="350.00", paid="350.00"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(mid_id, invoice_date=today, unit_price="175.00", paid="175.00"))
+
+    response = client.get("/api/reports/top-products?period=today", headers=headers)
+
+    assert response.status_code == 200
+    assert [row["product_id"] for row in response.json()] == [high_id, mid_id, low_id]
+
+
+def test_top_products_period_filter_works(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    product_id = seed_named_product(session_factory, code="PERIOD-01", name="Period Product")
+    today = date.today()
+    yesterday = today - date.resolution
+
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=yesterday, unit_price="180.00", paid="180.00"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(product_id, invoice_date=today, unit_price="95.00", paid="95.00"))
+
+    response = client.get("/api/reports/top-products?period=yesterday", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "product_id": product_id,
+            "product_code": "PERIOD-01",
+            "product_name": "Period Product",
+            "unit_type": "BAO",
+            "total_quantity": "1.000",
+            "total_revenue": "180.00",
+            "invoice_count": 1,
+        }
+    ]
+
+
+def test_top_products_limit_works(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    top_id = seed_named_product(session_factory, code="LIMIT-01", name="Top Product")
+    second_id = seed_named_product(session_factory, code="LIMIT-02", name="Second Product")
+    third_id = seed_named_product(session_factory, code="LIMIT-03", name="Third Product")
+    today = date.today()
+
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(top_id, invoice_date=today, unit_price="300.00", paid="300.00"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(second_id, invoice_date=today, unit_price="200.00", paid="200.00"))
+    client.post("/api/sales/invoices", headers=headers, json=invoice_payload(third_id, invoice_date=today, unit_price="100.00", paid="100.00"))
+
+    response = client.get("/api/reports/top-products?period=today&limit=2", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [row["product_id"] for row in body] == [top_id, second_id]
+    assert len(body) == 2
 
 
 def test_customer_debts_sorted_descending_and_decimal_serialized(client: TestClient, session_factory) -> None:

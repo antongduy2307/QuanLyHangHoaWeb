@@ -12,8 +12,6 @@ export type CustomerFormState = {
 export type CustomerFormErrors = Partial<Record<"customer_name" | "opening_balance" | "total_sales", string>>;
 
 const decimalPattern = /^-?(?:\d+)(?:\.\d{1,2})?$/;
-const nonNegativeDecimalPattern = /^(?:\d+)(?:\.\d{1,2})?$/;
-
 export const initialCustomerFormState: CustomerFormState = {
   customer_name: "",
   phone: "",
@@ -31,13 +29,10 @@ function optionalText(value: string) {
 export function validateCustomerForm(state: CustomerFormState): CustomerFormErrors {
   const errors: CustomerFormErrors = {};
   if (!state.customer_name.trim()) {
-    errors.customer_name = "Ten khach hang la bat buoc.";
+    errors.customer_name = "Tên khách hàng là bắt buộc.";
   }
   if (!decimalPattern.test(state.opening_balance.trim())) {
-    errors.opening_balance = "So du ban dau phai la so hop le.";
-  }
-  if (!nonNegativeDecimalPattern.test(state.total_sales.trim())) {
-    errors.total_sales = "Tong mua phai la so khong am.";
+    errors.opening_balance = "Số dư ban đầu phải là số hợp lệ.";
   }
   return errors;
 }
@@ -49,7 +44,6 @@ export function toCustomerCreatePayload(state: CustomerFormState): CustomerCreat
     address: optionalText(state.address),
     note: optionalText(state.note),
     opening_balance: state.opening_balance.trim() || "0",
-    total_sales: state.total_sales.trim() || "0",
   };
 }
 
@@ -67,7 +61,7 @@ export function customerToEditableFormState(customer: Customer): CustomerFormSta
 export function validateCustomerEditableForm(state: CustomerFormState): Pick<CustomerFormErrors, "customer_name"> {
   const errors: Pick<CustomerFormErrors, "customer_name"> = {};
   if (!state.customer_name.trim()) {
-    errors.customer_name = "Ten khach hang la bat buoc.";
+    errors.customer_name = "Tên khách hàng là bắt buộc.";
   }
   return errors;
 }

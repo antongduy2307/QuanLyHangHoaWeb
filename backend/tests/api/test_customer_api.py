@@ -186,6 +186,55 @@ def test_patch_customer_profile_and_clear_note(client: TestClient, session_facto
     assert response.json()["note"] is None
 
 
+def test_list_customers_searches_phone(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    first = create_customer(client, headers, "Minh Anh")
+    second = create_customer(client, headers, "Tran B")
+
+    client.patch(
+        f"/api/customers/{first['id']}",
+        headers=headers,
+        json={"customer_name": "Minh Anh", "phone": "0901000001", "address": None, "note": None},
+    )
+    client.patch(
+        f"/api/customers/{second['id']}",
+        headers=headers,
+        json={"customer_name": "Tran B", "phone": "0902000002", "address": None, "note": None},
+    )
+
+    response = client.get("/api/customers", headers=headers, params={"search": "090200"})
+
+    assert response.status_code == 200
+    assert [row["id"] for row in response.json()] == [second["id"]]
+
+
+def test_customer_create_rejects_manual_total_sales_field(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+
+    response = client.post(
+        "/api/customers",
+        headers=headers,
+        json={"customer_name": "Customer", "opening_balance": "0", "total_sales": "10"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "extra_forbidden"
+
+
+def test_customer_update_rejects_manual_total_sales_field(client: TestClient, session_factory) -> None:
+    headers = auth_headers(client, session_factory, UserRole.OWNER)
+    customer = create_customer(client, headers, "Customer")
+
+    response = client.patch(
+        f"/api/customers/{customer['id']}",
+        headers=headers,
+        json={"customer_name": "Customer", "total_sales": "10"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "extra_forbidden"
+
+
 def test_debt_payment_create_edit_delete_recomputes_balance(client: TestClient, session_factory) -> None:
     headers = auth_headers(client, session_factory, UserRole.OWNER)
     customer = create_customer(client, headers, opening_balance="100000")
@@ -217,10 +266,12 @@ def test_debt_payment_create_edit_delete_recomputes_balance(client: TestClient, 
     delete_response = client.delete(f"/api/customers/{customer['id']}/debt-payments/{payment_id}", headers=headers)
     final_customer = client.get(f"/api/customers/{customer['id']}", headers=headers)
     final_ledger = client.get(f"/api/customers/{customer['id']}/ledger", headers=headers)
+    final_payments = client.get(f"/api/customers/{customer['id']}/debt-payments", headers=headers)
 
     assert delete_response.status_code == 204
     assert final_customer.json()["current_balance"] == "100000.00"
     assert [row["event_type"] for row in final_ledger.json()] == ["OPENING_BALANCE"]
+    assert final_payments.json() == []
 
 
 def test_overpayment_can_make_balance_negative(client: TestClient, session_factory) -> None:

@@ -8,10 +8,12 @@ import { CustomerDetailPage } from "../features/customers/CustomerDetailPage";
 import { CustomerEditPage } from "../features/customers/CustomerEditPage";
 import { CustomerListPage } from "../features/customers/CustomerListPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { HistoryListPage } from "../features/history/HistoryListPage";
 import { ProductCreatePage } from "../features/inventory/ProductCreatePage";
 import { ProductDetailPage } from "../features/inventory/ProductDetailPage";
 import { ProductEditPage } from "../features/inventory/ProductEditPage";
 import { ProductListPage } from "../features/inventory/ProductListPage";
+import { OrderListPage } from "../features/orders/OrderListPage";
 import { ReportsPlaceholder } from "../features/reports/ReportsPlaceholder";
 import { ReturnDetailPage } from "../features/returns/ReturnDetailPage";
 import { ReturnCreatePage } from "../features/returns/ReturnCreatePage";
@@ -33,11 +35,18 @@ export const appRoutes: RouteObject[] = [
     path: "/",
     element: (
       <RequireAuth allowedRoles={adminShellRoles}>
+        <DashboardPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/",
+    element: (
+      <RequireAuth allowedRoles={adminShellRoles}>
         <AdminLayout />
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <DashboardPage /> },
       { path: "inventory", element: <Navigate to="/inventory/products" replace /> },
       { path: "inventory/products", element: <ProductListPage /> },
       {
@@ -57,6 +66,7 @@ export const appRoutes: RouteObject[] = [
           </RequireRole>
         ),
       },
+      { path: "history", element: <HistoryListPage /> },
       { path: "customers", element: <CustomerListPage /> },
       {
         path: "customers/new",
@@ -93,6 +103,7 @@ export const appRoutes: RouteObject[] = [
           </RequireRole>
         ),
       },
+      { path: "orders", element: <OrderListPage /> },
       { path: "returns", element: <ReturnListPage /> },
       {
         path: "returns/new",

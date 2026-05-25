@@ -2,6 +2,7 @@ import { apiRequest } from "./client";
 import type { ReturnInvoice, ReturnInvoiceCreatePayload } from "./types";
 
 type ListReturnsParams = {
+  customerId?: number;
   search?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -9,6 +10,9 @@ type ListReturnsParams = {
 
 export function listReturns(params: ListReturnsParams = {}) {
   const searchParams = new URLSearchParams();
+  if (params.customerId) {
+    searchParams.set("customer_id", String(params.customerId));
+  }
   if (params.search?.trim()) {
     searchParams.set("search", params.search.trim());
   }

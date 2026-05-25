@@ -3,19 +3,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createInvoice, deleteInvoice, getInvoice, listInvoices, updateInvoice } from "../../api/sales";
 import type { InvoiceCreatePayload } from "../../api/types";
 import { customerKeys } from "../customers/customerQueries";
+import { historyKeys } from "../history/historyQueries";
 import { productKeys } from "../inventory/productQueries";
+import { orderKeys } from "../orders/orderQueries";
 
 export const invoiceKeys = {
   all: ["invoices"] as const,
-  list: (search: string, dateFrom: string, dateTo: string) =>
-    [...invoiceKeys.all, "list", { search, dateFrom, dateTo }] as const,
+  list: (search: string, dateFrom: string, dateTo: string, customerId?: number | null) =>
+    [...invoiceKeys.all, "list", { search, dateFrom, dateTo, customerId: customerId ?? null }] as const,
   detail: (invoiceId: number) => [...invoiceKeys.all, invoiceId] as const,
 };
 
-export function useInvoices(search = "", dateFrom = "", dateTo = "") {
+export function useInvoices(search = "", dateFrom = "", dateTo = "", customerId?: number | null) {
   return useQuery({
-    queryKey: invoiceKeys.list(search, dateFrom, dateTo),
-    queryFn: () => listInvoices({ search, dateFrom, dateTo }),
+    queryKey: invoiceKeys.list(search, dateFrom, dateTo, customerId),
+    queryFn: () => listInvoices({ search, dateFrom, dateTo, customerId: customerId ?? undefined }),
   });
 }
 
@@ -35,6 +37,8 @@ export function useCreateInvoice() {
         queryClient.invalidateQueries({ queryKey: invoiceKeys.all }),
         queryClient.invalidateQueries({ queryKey: productKeys.all }),
         queryClient.invalidateQueries({ queryKey: customerKeys.all }),
+        queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+        queryClient.invalidateQueries({ queryKey: historyKeys.all }),
       ]);
     },
   });
@@ -48,6 +52,8 @@ function useInvalidateInvoiceSideEffects(invoiceId?: number) {
       invoiceId ? queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) }) : Promise.resolve(),
       queryClient.invalidateQueries({ queryKey: productKeys.all }),
       queryClient.invalidateQueries({ queryKey: customerKeys.all }),
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+      queryClient.invalidateQueries({ queryKey: historyKeys.all }),
     ]);
   };
 }
@@ -57,6 +63,23 @@ export function useUpdateInvoice(invoiceId: number) {
   return useMutation({
     mutationFn: (payload: InvoiceCreatePayload) => updateInvoice(invoiceId, payload),
     onSuccess: invalidateInvoice,
+  });
+}
+
+export function useUpdateInvoiceById() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ invoiceId, payload }: { invoiceId: number; payload: InvoiceCreatePayload }) => updateInvoice(invoiceId, payload),
+    onSuccess: async (_result, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: invoiceKeys.all }),
+        queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(variables.invoiceId) }),
+        queryClient.invalidateQueries({ queryKey: productKeys.all }),
+        queryClient.invalidateQueries({ queryKey: customerKeys.all }),
+        queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+        queryClient.invalidateQueries({ queryKey: historyKeys.all }),
+      ]);
+    },
   });
 }
 

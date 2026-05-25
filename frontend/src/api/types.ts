@@ -167,7 +167,6 @@ export type CustomerCreatePayload = {
   address?: string | null;
   note?: string | null;
   opening_balance: string;
-  total_sales: string;
 };
 
 export type CustomerUpdatePayload = {
@@ -218,6 +217,7 @@ export type InvoiceItemCreatePayload = {
 
 export type InvoiceCreatePayload = {
   customer_id: number | null;
+  source_order_id?: number | null;
   customer_snapshot_name?: string | null;
   invoice_datetime: string;
   items: InvoiceItemCreatePayload[];
@@ -274,6 +274,56 @@ export type ReturnInvoiceCreatePayload = {
   note?: string | null;
 };
 
+export type OrderStatus = "OPEN" | "PREPARED" | "CONVERTED";
+
+export type OrderItem = {
+  id: number;
+  product_id: number;
+  product_name_snapshot: string;
+  unit_type: UnitType;
+  quantity: string;
+  created_at: string;
+};
+
+export type Order = {
+  id: number;
+  order_code: string;
+  customer_id: number | null;
+  customer_name_snapshot: string;
+  order_datetime: string;
+  required_delivery_datetime: string | null;
+  note: string | null;
+  status: OrderStatus | string;
+  source_invoice_id: number | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  items: OrderItem[];
+};
+
+export type OrderItemCreatePayload = {
+  product_id: number;
+  unit_type: UnitType;
+  quantity: string;
+};
+
+export type OrderCreatePayload = {
+  customer_id: number | null;
+  customer_snapshot_name?: string | null;
+  order_datetime: string;
+  required_delivery_datetime?: string | null;
+  items: OrderItemCreatePayload[];
+  note?: string | null;
+};
+
+export type OrderQuantitySummaryRow = {
+  product_id: number;
+  product_name: string;
+  unit_type: UnitType;
+  quantity: string;
+  stock_available: string | null;
+};
+
 export type DashboardSummary = {
   total_products: number;
   total_customers: number;
@@ -284,6 +334,18 @@ export type DashboardSummary = {
   today_return_total: string;
   month_return_total: string;
   invoice_count_today: number;
+  positive_debt_customer_count: number;
+};
+
+export type DashboardOverview = {
+  today_invoice_count: number;
+  today_sales_total: string;
+  today_return_count: number;
+  today_return_total: string;
+  this_month_sales_total: string;
+  last_month_sales_total: string;
+  last_7_days_sales_total: string;
+  current_customer_debt: string;
   positive_debt_customer_count: number;
 };
 
@@ -322,6 +384,30 @@ export type SalesSummaryReport = {
   by_day: SalesSummaryDayRow[];
 };
 
+export type SalesTimeseriesBucket = {
+  label: string;
+  start_datetime: string;
+  end_datetime: string;
+  sales_total: string;
+  invoice_count: number;
+};
+
+export type SalesTimeseriesReport = {
+  period: "today" | "yesterday" | "last_7_days" | "this_month" | "last_month";
+  granularity: "hour" | "day";
+  buckets: SalesTimeseriesBucket[];
+};
+
+export type TopProductReportRow = {
+  product_id: number;
+  product_code: string;
+  product_name: string;
+  unit_type: UnitType;
+  total_quantity: string;
+  total_revenue: string;
+  invoice_count: number;
+};
+
 export type ReturnsSummaryDayRow = {
   date: string;
   return_count: number;
@@ -332,4 +418,47 @@ export type ReturnsSummaryReport = {
   total_returns: string;
   return_count: number;
   by_day: ReturnsSummaryDayRow[];
+};
+
+export type HistoryEventType =
+  | "SALES_INVOICE"
+  | "RETURN_INVOICE"
+  | "DEBT_PAYMENT"
+  | "BALANCE_ADJUSTMENT"
+  | "STOCK_MOVEMENT"
+  | "ORDER";
+
+export type HistoryOpenTarget = {
+  target_type: "invoice" | "return" | "customer" | "product" | "order" | string;
+  target_id: number;
+  route: string | null;
+};
+
+export type HistoryEvent = {
+  event_type: HistoryEventType | string;
+  event_id: number;
+  event_datetime: string | null;
+  display_order: number;
+  code: string | null;
+  customer_id: number | null;
+  customer_name: string | null;
+  product_id: number | null;
+  product_name: string | null;
+  amount: string | null;
+  paid_amount: string | null;
+  item_count: number | null;
+  quantity: string | null;
+  unit_type: UnitType | null;
+  status: string | null;
+  source_type: string | null;
+  source_id: number | null;
+  note: string | null;
+  open_target: HistoryOpenTarget | null;
+};
+
+export type HistoryListResponse = {
+  page: number;
+  page_size: number;
+  total: number;
+  items: HistoryEvent[];
 };

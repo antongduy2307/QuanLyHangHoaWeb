@@ -1,9 +1,11 @@
 import { FormEvent, useState } from "react";
 
 import type { DebtPayment, DebtPaymentPayload } from "../../api/types";
+import { formatMoney } from "../../domain/money";
 
 type DebtPaymentFormProps = {
   initialPayment?: DebtPayment | null;
+  currentBalance?: string | null;
   isSubmitting: boolean;
   submitLabel: string;
   errorMessage?: string | null;
@@ -42,6 +44,7 @@ function isPositiveAmount(value: string) {
 
 export function DebtPaymentForm({
   initialPayment,
+  currentBalance,
   isSubmitting,
   submitLabel,
   errorMessage,
@@ -52,11 +55,16 @@ export function DebtPaymentForm({
   const [paymentDatetime, setPaymentDatetime] = useState(toLocalDateTimeInput(initialPayment?.payment_datetime));
   const [note, setNote] = useState(initialPayment?.note ?? "");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const normalizedCurrentBalance = Number(currentBalance ?? "0");
+  const normalizedAmount = Number(amount || "0");
+  const estimatedBalance = Number.isFinite(normalizedAmount) ? normalizedCurrentBalance - normalizedAmount : normalizedCurrentBalance;
+  const balanceTone =
+    estimatedBalance > 0 ? "customer-balance-preview--debt" : estimatedBalance < 0 ? "customer-balance-preview--credit" : "";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isPositiveAmount(amount)) {
-      setValidationError("So tien thanh toan phai lon hon 0.");
+      setValidationError("Số tiền thanh toán phải lớn hơn 0.");
       return;
     }
     setValidationError(null);
@@ -74,12 +82,24 @@ export function DebtPaymentForm({
 
   return (
     <form className="form-panel compact-form" onSubmit={handleSubmit}>
+      {currentBalance !== undefined ? (
+        <div className="customer-balance-preview">
+          <div>
+            <span>Công nợ hiện tại</span>
+            <strong>{formatMoney(currentBalance)}</strong>
+          </div>
+          <div>
+            <span>Ước tính sau thanh toán</span>
+            <strong className={balanceTone}>{formatMoney(estimatedBalance.toFixed(2))}</strong>
+          </div>
+        </div>
+      ) : null}
       <label>
-        So tien thanh toan
+        Số tiền thanh toán
         <input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />
       </label>
       <label>
-        Thoi gian thanh toan
+        Thời gian thanh toán
         <input
           type="datetime-local"
           value={paymentDatetime}
@@ -87,7 +107,7 @@ export function DebtPaymentForm({
         />
       </label>
       <label>
-        Ghi chu
+        Ghi chú
         <textarea value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
       {validationError ? <p className="field-error">{validationError}</p> : null}
@@ -95,11 +115,11 @@ export function DebtPaymentForm({
       <div className="form-actions">
         {onCancel ? (
           <button className="secondary-link" type="button" onClick={onCancel}>
-            Huy
+            Hủy
           </button>
         ) : null}
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Dang luu" : submitLabel}
+          {isSubmitting ? "Đang lưu" : submitLabel}
         </button>
       </div>
     </form>

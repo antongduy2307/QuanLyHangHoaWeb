@@ -4,8 +4,9 @@ const navItems = [
   { to: "/", label: "Tong quan", end: true },
   { to: "/inventory/products", label: "Hang hoa" },
   { to: "/customers", label: "Khach hang" },
-  { to: "/sales/invoices", label: "Ban hang" },
-  { to: "/returns", label: "Tra hang" },
+  { to: "/history", label: "Lich su" },
+  { to: "/sales/invoices/new", label: "Ban hang" },
+  { to: "/orders", label: "Dat hang" },
   { to: "/reports", label: "Bao cao" },
   { to: "/settings", label: "Cai dat" },
 ];

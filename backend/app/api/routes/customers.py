@@ -100,7 +100,6 @@ def create_customer(payload: CustomerCreateRequest, session: SessionDep, _: Cust
             address=payload.address,
             note=payload.note,
             opening_balance=payload.opening_balance,
-            total_sales=payload.total_sales,
         )
         return customer.id
 
@@ -130,7 +129,6 @@ def update_customer(
             phone=payload.phone,
             address=payload.address,
             note=payload.note,
-            total_sales=payload.total_sales,
         )
         return customer.id
 

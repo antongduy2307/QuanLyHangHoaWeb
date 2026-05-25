@@ -66,7 +66,6 @@ def _customer_payload(name: str, opening_balance: str = "0") -> dict:
     return {
         "customer_name": name,
         "opening_balance": opening_balance,
-        "total_sales": "0",
     }
 
 
@@ -237,7 +236,7 @@ def test_postgres_protected_returns_route_effects(pg_client: TestClient, postgre
     customer = pg_client.post(
         "/api/customers",
         headers=owner_headers,
-        json={"customer_name": f"Postgres Return Customer {suffix}", "opening_balance": "0", "total_sales": "100"},
+        json={"customer_name": f"Postgres Return Customer {suffix}", "opening_balance": "0"},
     ).json()
     invoice = pg_client.post(
         "/api/sales/invoices",
@@ -277,5 +276,5 @@ def test_postgres_protected_returns_route_effects(pg_client: TestClient, postgre
     ]
     assert balance.on_hand_bao_decimal == 3
     assert stored_customer.current_balance == 0
-    assert stored_customer.total_sales == 100
+    assert stored_customer.total_sales == 0
     assert ledger_events == ["INVOICE_CHARGE", "RETURN_REFUND_NOW"]

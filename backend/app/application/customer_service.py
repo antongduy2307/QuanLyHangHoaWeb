@@ -144,15 +144,12 @@ class CustomerService:
         phone: str | None = None,
         address: str | None = None,
         note: str | None = None,
-        total_sales: Decimal | int | str | None = None,
     ) -> Customer:
         customer = self._repository.get_customer_for_update(session, customer_id)
         customer.customer_name = normalize_customer_name(customer_name)
         customer.phone = normalize_optional_text(phone)
         customer.address = normalize_optional_text(address)
         customer.note = normalize_optional_text(note)
-        if total_sales is not None:
-            customer.total_sales = require_non_negative_money(total_sales, "total_sales")
         session.flush()
         return customer
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.domain.exceptions import NotFoundError
@@ -38,7 +38,13 @@ class CustomerRepository:
             statement = statement.where(Customer.is_active.is_(True))
         needle = search.strip()
         if needle:
-            statement = statement.where(Customer.customer_name.ilike(f"%{needle}%"))
+            pattern = f"%{needle}%"
+            statement = statement.where(
+                or_(
+                    Customer.customer_name.ilike(pattern),
+                    Customer.phone.ilike(pattern),
+                )
+            )
         if only_positive_debt:
             statement = statement.where(Customer.current_balance > ZERO)
         return list(session.scalars(statement).all())

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
@@ -16,6 +16,18 @@ class DashboardSummaryResponse(BaseModel):
     today_return_total: Decimal
     month_return_total: Decimal
     invoice_count_today: int
+    positive_debt_customer_count: int
+
+
+class DashboardOverviewResponse(BaseModel):
+    today_invoice_count: int
+    today_sales_total: Decimal
+    today_return_count: int
+    today_return_total: Decimal
+    this_month_sales_total: Decimal
+    last_month_sales_total: Decimal
+    last_7_days_sales_total: Decimal
+    current_customer_debt: Decimal
     positive_debt_customer_count: int
 
 
@@ -60,6 +72,30 @@ class SalesSummaryResponse(BaseModel):
     invoice_count: int
     average_invoice_total: Decimal
     by_day: list[SalesSummaryDayRow]
+
+
+class SalesTimeseriesBucketResponse(BaseModel):
+    label: str
+    start_datetime: datetime
+    end_datetime: datetime
+    sales_total: Decimal
+    invoice_count: int
+
+
+class SalesTimeseriesResponse(BaseModel):
+    period: str
+    granularity: str
+    buckets: list[SalesTimeseriesBucketResponse]
+
+
+class TopProductReportRow(BaseModel):
+    product_id: int
+    product_code: str
+    product_name: str
+    unit_type: str
+    total_quantity: Decimal
+    total_revenue: Decimal
+    invoice_count: int
 
 
 class ReturnsSummaryDayRow(BaseModel):

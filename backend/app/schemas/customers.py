@@ -49,20 +49,22 @@ class DebtPaymentData:
 
 
 class CustomerCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     customer_name: str = Field(min_length=1)
     phone: str | None = None
     address: str | None = None
     note: str | None = None
     opening_balance: Decimal = Decimal("0")
-    total_sales: Decimal = Decimal("0")
 
 
 class CustomerUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     customer_name: str = Field(min_length=1)
     phone: str | None = None
     address: str | None = None
     note: str | None = None
-    total_sales: Decimal | None = None
 
 
 class DebtPaymentRequest(BaseModel):

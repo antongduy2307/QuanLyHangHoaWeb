@@ -99,6 +99,25 @@ def test_postgres_dashboard_summary_date_filters_do_not_compare_date_to_string(p
     assert body["invoice_count_today"] == 1
 
 
+def test_postgres_dashboard_overview_returns_today_and_trailing_metrics(pg_client: TestClient, postgres_session: Session) -> None:
+    headers = _auth_headers(pg_client, postgres_session)
+    product_id = _create_product(pg_client, headers)
+    today = date.today()
+    assert pg_client.post("/api/sales/invoices", headers=headers, json=_invoice_payload(product_id, today)).status_code == 201
+    assert pg_client.post("/api/returns", headers=headers, json=_return_payload(product_id, today)).status_code == 201
+
+    response = pg_client.get("/api/reports/overview", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["today_invoice_count"] == 1
+    assert body["today_sales_total"] == "100.00"
+    assert body["today_return_count"] == 1
+    assert body["today_return_total"] == "100.00"
+    assert body["this_month_sales_total"] == "100.00"
+    assert body["last_7_days_sales_total"] == "100.00"
+
+
 def test_postgres_reports_protected_api_smoke(pg_client: TestClient, postgres_session: Session) -> None:
     owner_headers = _auth_headers(pg_client, postgres_session, UserRole.OWNER)
     read_only_headers = _auth_headers(pg_client, postgres_session, UserRole.READ_ONLY)
@@ -107,9 +126,54 @@ def test_postgres_reports_protected_api_smoke(pg_client: TestClient, postgres_se
     assert pg_client.post("/api/sales/invoices", headers=owner_headers, json=_invoice_payload(product_id, date.today())).status_code == 201
 
     assert pg_client.get("/api/reports/dashboard-summary", headers=read_only_headers).status_code == 200
+    assert pg_client.get("/api/reports/overview", headers=read_only_headers).status_code == 200
+    assert pg_client.get("/api/reports/sales-timeseries?period=today&granularity=hour", headers=read_only_headers).status_code == 200
+    assert pg_client.get("/api/reports/top-products?period=today", headers=read_only_headers).status_code == 200
     assert pg_client.get("/api/reports/sales-summary", headers=read_only_headers).status_code == 200
     assert pg_client.get("/api/reports/returns-summary", headers=read_only_headers).status_code == 200
     assert pg_client.get("/api/reports/dashboard-summary", headers=employee_headers).status_code == 403
+    assert pg_client.get("/api/reports/overview", headers=employee_headers).status_code == 403
+    assert pg_client.get("/api/reports/sales-timeseries?period=today&granularity=hour", headers=employee_headers).status_code == 403
+
+
+def test_postgres_sales_timeseries_returns_chart_ready_buckets(pg_client: TestClient, postgres_session: Session) -> None:
+    headers = _auth_headers(pg_client, postgres_session)
+    product_id = _create_product(pg_client, headers)
+    business_date = date.today()
+    assert pg_client.post("/api/sales/invoices", headers=headers, json=_invoice_payload(product_id, business_date)).status_code == 201
+
+    response = pg_client.get("/api/reports/sales-timeseries?period=today&granularity=hour", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["period"] == "today"
+    assert body["granularity"] == "hour"
+    assert len(body["buckets"]) == 24
+    assert any(bucket["label"] == "09:00" and bucket["sales_total"] == "100.00" for bucket in body["buckets"])
+
+
+def test_postgres_top_products_returns_revenue_ranked_rows(pg_client: TestClient, postgres_session: Session) -> None:
+    headers = _auth_headers(pg_client, postgres_session)
+    first_product_id = _create_product(pg_client, headers)
+    second_product_id = _create_product(pg_client, headers)
+    business_date = date.today()
+
+    assert pg_client.post("/api/sales/invoices", headers=headers, json=_invoice_payload(first_product_id, business_date)).status_code == 201
+    second_payload = _invoice_payload(second_product_id, business_date)
+    second_payload["items"][0]["quantity"] = "2"
+    second_payload["items"][0]["unit_price"] = "150.00"
+    second_payload["paid_amount"] = "300.00"
+    assert pg_client.post("/api/sales/invoices", headers=headers, json=second_payload).status_code == 201
+
+    response = pg_client.get("/api/reports/top-products?period=today", headers=headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body[0]["product_id"] == second_product_id
+    assert body[0]["total_revenue"] == "300.00"
+    assert body[0]["invoice_count"] == 1
+    assert body[1]["product_id"] == first_product_id
+    assert body[1]["total_revenue"] == "100.00"
 
 
 def test_postgres_sales_and_returns_summary_date_ranges_use_timestamp_bounds(pg_client: TestClient, postgres_session: Session) -> None:

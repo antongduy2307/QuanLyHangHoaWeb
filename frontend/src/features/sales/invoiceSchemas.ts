@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceCreatePayload, Product, UnitType } from "../../api/types";
+import type { Customer, Invoice, InvoiceCreatePayload, Product, UnitType } from "../../api/types";
 
 export type InvoiceItemFormState = {
   rowId: string;
@@ -6,6 +6,8 @@ export type InvoiceItemFormState = {
   unitType: UnitType | "";
   quantity: string;
   unitPrice: string;
+  productCodeSnapshot?: string;
+  productNameSnapshot?: string;
 };
 
 export type InvoiceFormState = {
@@ -20,6 +22,13 @@ export type InvoiceFormState = {
 };
 
 export type InvoiceFormErrors = Record<string, string>;
+
+export type HistoricalCustomerReference = {
+  customerId: string;
+  customerSnapshotName: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
 
 const decimalPattern = /^(?:\d+)(?:\.\d{1,3})?$/;
 const moneyPattern = /^(?:\d+)(?:\.\d{1,2})?$/;
@@ -80,8 +89,63 @@ export function invoiceToFormState(invoice: Invoice): InvoiceFormState {
       unitType: item.unit_type,
       quantity: item.quantity,
       unitPrice: item.unit_price,
+      productCodeSnapshot: item.product_code_snapshot,
+      productNameSnapshot: item.product_name_snapshot,
     })),
   };
+}
+
+export function mergeHistoricalProducts(
+  activeProducts: Product[],
+  items: InvoiceItemFormState[],
+  fallbackCreatedAt?: string | null,
+  fallbackUpdatedAt?: string | null,
+) {
+  const productById = new Map(activeProducts.map((product) => [String(product.id), product]));
+  const merged = [...activeProducts];
+
+  for (const item of items) {
+    if (!item.productId || productById.has(item.productId)) {
+      continue;
+    }
+    merged.push({
+      id: Number(item.productId),
+      product_code_base: item.productCodeSnapshot || item.productId,
+      product_name: item.productNameSnapshot || item.productId,
+      unit_mode: item.unitType === "BICH" ? "BICH" : "BAO_KG",
+      is_active: false,
+      created_at: fallbackCreatedAt || fallbackUpdatedAt || new Date(0).toISOString(),
+      updated_at: fallbackUpdatedAt || fallbackCreatedAt || new Date(0).toISOString(),
+      prices: item.unitType ? [{ unit_type: item.unitType, price: item.unitPrice || "0", is_enabled: true }] : [],
+      balance: null,
+    });
+    productById.set(item.productId, merged[merged.length - 1]);
+  }
+
+  return merged;
+}
+
+export function mergeHistoricalCustomer(activeCustomers: Customer[], reference?: HistoricalCustomerReference | null) {
+  if (!reference?.customerId || activeCustomers.some((customer) => String(customer.id) === reference.customerId)) {
+    return activeCustomers;
+  }
+
+  return [
+    ...activeCustomers,
+    {
+      id: Number(reference.customerId),
+      customer_name: reference.customerSnapshotName,
+      phone: null,
+      address: null,
+      note: null,
+      current_balance: "0",
+      total_sales: "0",
+      is_walk_in: false,
+      is_active: false,
+      created_at: reference.createdAt || reference.updatedAt || new Date(0).toISOString(),
+      updated_at: reference.updatedAt || reference.createdAt || new Date(0).toISOString(),
+    },
+  ];
 }
 
 export function isNonNegativeMoney(value: string) {
