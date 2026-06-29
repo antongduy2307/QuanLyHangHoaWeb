@@ -21,10 +21,11 @@ export function useInvoices(search = "", dateFrom = "", dateTo = "", customerId?
   });
 }
 
-export function useInvoice(invoiceId: number) {
+export function useInvoice(invoiceId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: invoiceKeys.detail(invoiceId),
     queryFn: () => getInvoice(invoiceId),
+    enabled: options?.enabled ?? true,
   });
 }
 

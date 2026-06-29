@@ -26,6 +26,7 @@ type SalesPosMockOptions = {
   invoice?: ReturnType<typeof invoiceFixture>;
   invoices?: unknown[];
   failInvoiceFetch?: boolean;
+  invoiceDelayMs?: number;
 };
 
 function mockSalesPosSession(role: "owner" | "admin" | "read_only" = "owner", options: SalesPosMockOptions = {}) {
@@ -65,6 +66,11 @@ function mockSalesPosSession(role: "owner" | "admin" | "read_only" = "owner", op
       return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Invoice not found" } }, 404));
     }
     if (url.endsWith(`/sales/invoices/${invoice.id}`)) {
+      if (options.invoiceDelayMs) {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(jsonResponse(invoice)), options.invoiceDelayMs);
+        });
+      }
       return Promise.resolve(jsonResponse(invoice));
     }
     if (url.endsWith("/sales/invoices") || url.includes("/sales/invoices?")) {
@@ -138,6 +144,27 @@ describe("InvoiceCreatePage edit draft mode", () => {
     expect(screen.getByText(invoice.customer_snapshot_name)).toBeInTheDocument();
     expect(screen.getByText(invoice.items[0].product_code_snapshot)).toBeInTheDocument();
     expect(screen.getByText(invoice.items[0].product_name_snapshot)).toBeInTheDocument();
+  });
+
+  it("first-load edit hydration transitions automatically without retry", async () => {
+    const invoice = invoiceFixture();
+    const fetchMock = mockSalesPosSession("owner", { invoice, invoiceDelayMs: 20 });
+    const { container } = renderSalesRoute({
+      pathname: "/sales/invoices/new",
+      state: { editInvoiceDraft: { invoiceId: invoice.id, returnTo: `/sales/invoices/${invoice.id}`, returnLabel: "Quay l\u1ea1i h\u00f3a \u0111\u01a1n" } },
+    });
+
+    expect(await screen.findByText("Đang tải hóa đơn cần sửa...")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(activeTabLabel(container)).toContain(invoice.invoice_code);
+    });
+
+    expect(screen.getByDisplayValue(toLocalDateTimeInput(invoice.invoice_datetime))).toBeInTheDocument();
+    expect(screen.getByDisplayValue(invoice.paid_amount)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(invoice.note ?? "")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).endsWith(`/sales/invoices/${invoice.id}`) && !call[1]?.method)).toBe(true);
   });
 
   it("edit submit calls PATCH instead of POST and redirects to invoice detail by default", async () => {
@@ -289,6 +316,70 @@ describe("InvoiceCreatePage edit draft mode", () => {
     expect(await screen.findByText("Invoice not found")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Th\u1eed l\u1ea1i" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Quay l\u1ea1i h\u00f3a \u0111\u01a1n" })).toBeInTheDocument();
+  });
+
+  it("retry succeeds after an initial invoice fetch error", async () => {
+    const invoice = invoiceFixture();
+    setRefreshToken("stored-refresh");
+    let failOnce = true;
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/refresh")) {
+        return Promise.resolve(
+          jsonResponse({ access_token: "new-access", refresh_token: "new-refresh", token_type: "bearer", expires_in: 1800 }),
+        );
+      }
+      if (url.endsWith("/auth/me")) {
+        return Promise.resolve(jsonResponse(user("owner")));
+      }
+      if (url.includes("/inventory/products")) {
+        return Promise.resolve(jsonResponse([productFixture(), bichProductFixture()]));
+      }
+      if (url.includes("/customers")) {
+        return Promise.resolve(jsonResponse([customerFixture()]));
+      }
+      if (url.endsWith("/returns") || url.includes("/returns?")) {
+        return Promise.resolve(jsonResponse([returnFixture()]));
+      }
+      if (url.endsWith(`/sales/invoices/${invoice.id}`) && failOnce) {
+        failOnce = false;
+        return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Invoice not found" } }, 404));
+      }
+      if (url.endsWith(`/sales/invoices/${invoice.id}`)) {
+        return Promise.resolve(jsonResponse(invoice));
+      }
+      if (url.endsWith("/sales/invoices") || url.includes("/sales/invoices?")) {
+        return Promise.resolve(jsonResponse([invoice]));
+      }
+      if (url.endsWith(`/sales/invoices/${invoice.id}`) && init?.method === "PATCH") {
+        return Promise.resolve(jsonResponse(invoice));
+      }
+      return Promise.resolve(jsonResponse({ error: { code: "not_found", message: "Not found" } }, 404));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const testUser = userEvent.setup();
+    const { container } = renderSalesRoute({
+      pathname: "/sales/invoices/new",
+      state: { editInvoiceDraft: { invoiceId: invoice.id, returnTo: `/sales/invoices/${invoice.id}`, returnLabel: "Quay l\u1ea1i h\u00f3a \u0111\u01a1n" } },
+    });
+
+    expect(await screen.findByText("Invoice not found")).toBeInTheDocument();
+    await testUser.click(screen.getByRole("button", { name: "Thử lại" }));
+
+    await waitFor(() => {
+      expect(activeTabLabel(container)).toContain(invoice.invoice_code);
+    });
+  });
+
+  it("normal create POS still starts blank without edit route state", async () => {
+    mockSalesPosSession("owner");
+    const { container } = renderSalesRoute("/sales/invoices/new");
+
+    await waitFor(() => {
+      expect(activeTabLabel(container)).toContain("Bán hàng 1");
+    });
+    expect(screen.queryByText("Đang tải hóa đơn cần sửa...")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
   });
 
   it("edit submit from invoice detail returns to invoice detail and does not POST", async () => {

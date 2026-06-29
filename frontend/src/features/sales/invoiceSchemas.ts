@@ -213,37 +213,37 @@ export function validateInvoiceForm(formState: InvoiceFormState, products: Produ
   const productById = new Map(products.map((product) => [String(product.id), product]));
 
   if (!formState.invoice_datetime) {
-    errors.invoice_datetime = "Thoi gian hoa don la bat buoc.";
+    errors.invoice_datetime = "Thời gian hóa đơn là bắt buộc.";
   }
   if (formState.saleMode === "customer" && !formState.customerId) {
-    errors.customerId = "Can chon khach hang.";
+    errors.customerId = "Cần chọn khách hàng.";
   }
   if (formState.saleMode === "walk_in" && !formState.customer_snapshot_name.trim()) {
-    errors.customer_snapshot_name = "Ten khach le la bat buoc.";
+    errors.customer_snapshot_name = "Tên khách lẻ là bắt buộc.";
   }
   if (!isNonNegativeMoney(formState.paid_amount)) {
-    errors.paid_amount = "So tien da thanh toan phai la so khong am.";
+    errors.paid_amount = "Số tiền đã thanh toán phải là số không âm.";
   }
   if (formState.items.length === 0) {
-    errors.items = "Hoa don can it nhat mot dong hang.";
+    errors.items = "Hóa đơn cần ít nhất một dòng hàng.";
   }
 
   formState.items.forEach((item, index) => {
     const prefix = `items.${index}`;
     const product = productById.get(item.productId);
     if (!product) {
-      errors[`${prefix}.productId`] = "Can chon hang hoa.";
+      errors[`${prefix}.productId`] = "Cần chọn hàng hóa.";
     }
     if (!item.unitType && product) {
-      errors[`${prefix}.unitType`] = "Can chon don vi.";
+      errors[`${prefix}.unitType`] = "Cần chọn đơn vị.";
     } else if (product && !isCompatibleUnit(product, item.unitType)) {
-      errors[`${prefix}.unitType`] = "Don vi khong phu hop voi hang hoa.";
+      errors[`${prefix}.unitType`] = "Đơn vị không phù hợp với hàng hóa.";
     }
     if (!isPositiveDecimal(item.quantity)) {
-      errors[`${prefix}.quantity`] = "So luong phai lon hon 0.";
+      errors[`${prefix}.quantity`] = "Số lượng phải lớn hơn 0.";
     }
     if (!isNonNegativeMoney(item.unitPrice)) {
-      errors[`${prefix}.unitPrice`] = "Don gia phai la so khong am.";
+      errors[`${prefix}.unitPrice`] = "Đơn giá phải là số không âm.";
     }
   });
 
@@ -251,7 +251,7 @@ export function validateInvoiceForm(formState: InvoiceFormState, products: Produ
   if (formState.saleMode === "walk_in" && estimatedTotal !== null && isNonNegativeMoney(formState.paid_amount)) {
     const paidCents = parseScaled(formState.paid_amount, 2);
     if (paidCents < estimatedTotal) {
-      errors.paid_amount = "Hoa don khach le phai thanh toan du hoac thanh toan thua.";
+      errors.paid_amount = "Hóa đơn khách lẻ phải thanh toán dư hoặc thanh toán thừa.";
     }
   }
 

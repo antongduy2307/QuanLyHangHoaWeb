@@ -1066,6 +1066,242 @@ select {
   gap: 14px;
 }
 
+.attendance-page-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.attendance-page-tabs {
+  margin-bottom: 6px;
+}
+
+.attendance-tab-content {
+  display: grid;
+  gap: 14px;
+}
+
+.attendance-control-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.attendance-field {
+  min-width: 200px;
+  display: grid;
+  gap: 6px;
+  color: var(--inventory-brown-800);
+}
+
+.attendance-field input,
+.attendance-field select,
+.attendance-work-row input,
+.attendance-add-row input,
+.attendance-add-row select,
+.attendance-data-table input {
+  border: 1px solid var(--inventory-line);
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: rgba(255, 252, 244, 0.96);
+  color: var(--inventory-text);
+}
+
+.attendance-checkbox {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--inventory-text);
+}
+
+.attendance-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.attendance-panel,
+.attendance-card {
+  border: 1px solid var(--inventory-line);
+  border-radius: 20px;
+  background: rgba(255, 252, 244, 0.96);
+  padding: 16px;
+  box-shadow: 0 18px 32px rgba(77, 47, 27, 0.08);
+}
+
+.attendance-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.attendance-panel--list {
+  align-self: start;
+  align-content: start;
+  height: fit-content;
+}
+
+.attendance-panel__header,
+.attendance-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.attendance-panel__header h3,
+.attendance-card__header h4 {
+  margin: 0;
+  color: var(--inventory-brown-900);
+}
+
+.attendance-panel__header span,
+.attendance-card__header span {
+  color: var(--inventory-muted);
+}
+
+.attendance-table-wrap {
+  margin-top: 0;
+}
+
+.attendance-data-table th,
+.attendance-data-table td {
+  vertical-align: middle;
+}
+
+.attendance-row--inactive td {
+  color: var(--inventory-muted);
+}
+
+.attendance-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.attendance-form-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.attendance-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.attendance-summary-card {
+  border: 1px solid var(--inventory-line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--inventory-cream-100);
+  display: grid;
+  gap: 6px;
+}
+
+.attendance-summary-card span {
+  color: var(--inventory-muted);
+}
+
+.attendance-summary-card strong {
+  color: var(--inventory-brown-900);
+}
+
+.attendance-work-list {
+  display: grid;
+  gap: 10px;
+}
+
+.attendance-work-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(128px, 160px);
+  gap: 14px;
+  align-items: center;
+}
+
+.attendance-work-row strong {
+  display: block;
+  color: var(--inventory-brown-900);
+}
+
+.attendance-work-row span {
+  color: var(--inventory-muted);
+  font-size: 0.9rem;
+}
+
+.attendance-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.attendance-search-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attendance-form-actions {
+  justify-content: flex-end;
+}
+
+.attendance-employee-dialog__checkbox {
+  margin-top: 8px;
+}
+
+.settings-page-layout,
+.settings-section-shell,
+.settings-section-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-page-tabs {
+  margin-bottom: 6px;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-overview-card {
+  border: 1px solid rgba(219, 201, 174, 0.8);
+  border-radius: 18px;
+  background: #fffaf0;
+  padding: 16px;
+}
+
+.settings-overview-card span,
+.settings-overview-card p {
+  color: var(--inventory-muted);
+  margin: 0;
+}
+
+.settings-overview-card span {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.settings-overview-card strong {
+  color: var(--inventory-brown-900);
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
 .history-layout {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -3032,11 +3268,26 @@ select {
   .inventory-product-hero-actions,
   .inventory-stock-section-actions,
   .inventory-price-editor-card__header,
+  .attendance-panel__header,
+  .attendance-card__header,
+  .attendance-control-strip,
+  .attendance-add-row,
   .customer-inline-balance-bar,
   .customer-inline-section-heading {
     align-items: flex-start;
     justify-content: flex-start;
     flex-direction: column;
+  }
+
+  .attendance-layout-grid,
+  .attendance-summary-grid,
+  .settings-form-grid,
+  .settings-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-work-row {
+    grid-template-columns: 1fr;
   }
 
   .sales-pos {

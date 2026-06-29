@@ -462,3 +462,301 @@ export type HistoryListResponse = {
   total: number;
   items: HistoryEvent[];
 };
+
+export type AttendanceTeam = "blow" | "cut";
+export type AttendanceRecordStatus = "draft" | "done";
+export type AttendanceUiStatus = "not_started" | "draft" | "done" | "absent";
+export type AttendanceWorkInputType = "tick" | "quantity";
+export type AttendanceWorkPricingRule = "flat_tick" | "quantity_full" | "quantity_excess_over_quota";
+
+export type AttendanceEmployee = {
+  id: number;
+  display_name: string;
+  team: AttendanceTeam;
+  is_active: boolean;
+  user_id: number | null;
+  legacy_employee_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AttendanceEmployeeCreatePayload = {
+  display_name: string;
+  team: AttendanceTeam;
+  is_active?: boolean;
+  user_id?: number | null;
+  legacy_employee_id?: number | null;
+};
+
+export type AttendanceEmployeeUpdatePayload = {
+  display_name?: string;
+  team?: AttendanceTeam;
+  is_active?: boolean;
+  user_id?: number | null;
+  legacy_employee_id?: number | null;
+};
+
+export type AttendanceEmployeeDeleteResult = {
+  employee_id: number;
+  action: "hard_deleted" | "deactivated" | string;
+};
+
+export type AttendancePeriod = {
+  id: number;
+  start_date: string;
+  end_date: string;
+  locked: boolean;
+  legacy_period_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AttendanceReference = {
+  teams: AttendanceTeam[];
+  record_statuses: AttendanceRecordStatus[];
+};
+
+export type AttendanceWorkType = {
+  id: number;
+  name: string;
+  team: AttendanceTeam;
+  input_type: AttendanceWorkInputType;
+  pricing_rule: AttendanceWorkPricingRule;
+  quota_quantity: string | null;
+  unit_price: string;
+  exclusive_group: string | null;
+  is_active: boolean;
+  legacy_work_type_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AttendanceWorkTypeCreatePayload = {
+  name: string;
+  input_type: AttendanceWorkInputType;
+  pricing_rule: AttendanceWorkPricingRule;
+  quota_quantity?: string | null;
+  unit_price: string;
+  exclusive_group?: string | null;
+  is_active?: boolean;
+  legacy_work_type_id?: number | null;
+};
+
+export type AttendanceWorkTypeUpdatePayload = {
+  name: string;
+  input_type: AttendanceWorkInputType;
+  pricing_rule: AttendanceWorkPricingRule;
+  quota_quantity?: string | null;
+  unit_price: string;
+  exclusive_group?: string | null;
+  is_active: boolean;
+};
+
+export type AttendanceWorkTypeSeedResult = {
+  created_count: number;
+  skipped_count: number;
+  created_names: string[];
+  skipped_names: string[];
+};
+
+export type AttendanceInventoryDiagnosticIssue = {
+  issue_type: string;
+  daily_record_id: number;
+  employee_id: number;
+  work_date: string;
+  message: string;
+};
+
+export type AttendanceBagType = {
+  id: number;
+  name: string;
+  product_id: number | null;
+  product_code_base: string | null;
+  product_name: string | null;
+  source_product_name_snapshot: string | null;
+  quota_quantity: string;
+  excess_unit_price: string;
+  is_active: boolean;
+  is_product_linked: boolean;
+  is_excluded_from_attendance: boolean;
+  is_legacy: boolean;
+  legacy_bag_type_id: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AttendanceBagTypeCreatePayload = {
+  name: string;
+  quota_quantity: string;
+  excess_unit_price: string;
+  is_active?: boolean;
+  is_product_linked: boolean;
+  is_excluded_from_attendance?: boolean;
+  is_legacy?: boolean;
+  product_id?: number | null;
+  source_product_name_snapshot?: string | null;
+  legacy_bag_type_id?: number | null;
+};
+
+export type AttendanceBagTypeUpdatePayload = {
+  name: string;
+  quota_quantity: string;
+  excess_unit_price: string;
+  is_active: boolean;
+  is_product_linked: boolean;
+  is_excluded_from_attendance: boolean;
+  is_legacy: boolean;
+  product_id?: number | null;
+  source_product_name_snapshot?: string | null;
+};
+
+export type AttendanceCutProductSearchResult = {
+  product_id: number;
+  product_code_base: string;
+  product_name: string;
+  unit_mode: UnitMode;
+  linked_bag_type_id: number | null;
+  linked_bag_type_name: string | null;
+  quota_quantity: string | null;
+  excess_unit_price: string | null;
+  is_active: boolean;
+  is_excluded_from_attendance: boolean;
+  is_legacy: boolean;
+  is_configured_for_attendance: boolean;
+};
+
+export type AttendanceBagTypeFromProductPayload = {
+  product_id: number;
+  quota_quantity?: string | null;
+  excess_unit_price?: string | null;
+};
+
+export type AttendanceDayEntryStatusRow = {
+  id: number;
+  display_name: string;
+  team: AttendanceTeam;
+  is_active: boolean;
+  status: AttendanceUiStatus;
+  record_status: AttendanceRecordStatus | null;
+  is_absent: boolean;
+};
+
+export type AttendanceWorkLogValue = {
+  work_type_id: number;
+  quantity: string;
+  unit_price_snapshot: string;
+  amount_snapshot: string;
+};
+
+export type AttendanceCutLogValue = {
+  bag_type_id: number;
+  quantity: string;
+  quota_quantity_snapshot: string | null;
+  excess_unit_price_snapshot: string;
+  amount_snapshot: string;
+};
+
+export type AttendanceExtraCutLogValue = {
+  bag_type_id: number;
+  quantity: string;
+  excess_unit_price_snapshot: string;
+  amount_snapshot: string;
+};
+
+export type AttendanceDayEntryDetail = {
+  employee_id: number;
+  display_name: string;
+  team: AttendanceTeam;
+  selected_date: string;
+  status: AttendanceUiStatus;
+  record_status: AttendanceRecordStatus | null;
+  is_absent: boolean;
+  total_amount_snapshot: string;
+  work_types: AttendanceWorkType[];
+  bag_types: AttendanceBagType[];
+  work_logs: AttendanceWorkLogValue[];
+  cut_logs: AttendanceCutLogValue[];
+  extra_cut_logs: AttendanceExtraCutLogValue[];
+};
+
+export type AttendanceWorkLogItemPayload = {
+  work_type_id: number;
+  quantity?: string | null;
+};
+
+export type AttendanceCutLogItemPayload = {
+  bag_type_id: number;
+  quantity: string;
+};
+
+export type AttendanceExtraCutLogItemPayload = {
+  bag_type_id: number;
+  quantity: string;
+};
+
+export type AttendanceDayEntrySavePayload = {
+  is_absent: boolean;
+  blow_work: AttendanceWorkLogItemPayload[];
+  cut_work: AttendanceCutLogItemPayload[];
+  extra_cut_work: AttendanceExtraCutLogItemPayload[];
+};
+
+export type AttendanceDayEntrySaveResult = {
+  record_id: number;
+  status: AttendanceRecordStatus;
+  is_absent: boolean;
+  total_amount_snapshot: string;
+};
+
+export type AttendancePeriodReportEmployeeValue = {
+  employee_id: number;
+  display_name: string;
+  details: Record<string, string>;
+  total_amount: string;
+  is_absent: boolean;
+  status: AttendanceRecordStatus | null;
+};
+
+export type AttendancePeriodReportRow = {
+  work_date: string;
+  employee_values: AttendancePeriodReportEmployeeValue[];
+  day_total: string;
+};
+
+export type AttendancePeriodReportEmployeeSummary = {
+  employee_id: number;
+  display_name: string;
+  total_amount: string;
+  paid_workdays: number;
+};
+
+export type AttendancePeriodReport = {
+  team: AttendanceTeam;
+  period_id: number;
+  start_date: string;
+  end_date: string;
+  detail_labels: string[];
+  employee_summaries: AttendancePeriodReportEmployeeSummary[];
+  rows: AttendancePeriodReportRow[];
+  grand_total: string;
+  total_paid_workdays: number;
+};
+
+export type AttendanceMonthlyReportRow = {
+  employee_id: number;
+  display_name: string;
+  details: Record<string, string>;
+  total_amount: string;
+  paid_workdays: number;
+};
+
+export type AttendanceMonthlyReport = {
+  team: AttendanceTeam;
+  month: string;
+  month_start: string;
+  month_end: string;
+  detail_labels: string[];
+  rows: AttendanceMonthlyReportRow[];
+  grand_total: string;
+  total_paid_workdays: number;
+};

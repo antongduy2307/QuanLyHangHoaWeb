@@ -2,7 +2,14 @@ import { screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { adminRoutes } from "../domain/routes";
-import { mockAuthenticatedSession, mockCustomerSession, mockInventorySession, mockReturnsSession, mockSalesSession } from "../tests/appTestHarness";
+import {
+  mockAttendanceSession,
+  mockAuthenticatedSession,
+  mockCustomerSession,
+  mockInventorySession,
+  mockReturnsSession,
+  mockSalesSession,
+} from "../tests/appTestHarness";
 import { renderRoute } from "../tests/testUtils";
 
 describe("admin shell", () => {
@@ -22,6 +29,7 @@ describe("admin shell", () => {
 
     expect(await screen.findByRole("heading", { name: "Tổng quan" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("href", adminRoutes.dashboard);
+    expect(screen.getByRole("link", { name: "Chấm công" })).toHaveAttribute("href", adminRoutes.attendance);
     expect(screen.getByRole("link", { name: "Hàng hóa" })).toHaveAttribute("href", adminRoutes.products);
     expect(screen.getByRole("link", { name: "Khách hàng" })).toHaveAttribute("href", adminRoutes.customers);
     expect(screen.getByRole("link", { name: "Lịch sử" })).toHaveAttribute("href", adminRoutes.history);
@@ -54,5 +62,13 @@ describe("admin shell", () => {
     renderRoute("/");
 
     expect(await screen.findByRole("heading", { name: "Khong co quyen truy cap" })).toBeInTheDocument();
+  });
+
+  it("allows attendance_manager into the attendance route without the full admin shell", async () => {
+    mockAttendanceSession("attendance_manager");
+    renderRoute("/attendance");
+
+    expect(await screen.findByRole("heading", { name: "Chấm công" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Chấm công" })).toHaveAttribute("href", adminRoutes.attendance);
   });
 });

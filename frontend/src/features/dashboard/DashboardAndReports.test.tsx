@@ -236,7 +236,7 @@ describe("dashboard and reports", () => {
     expect(screen.queryByText("Moi truong quan tri")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Điều hướng chính")).toBeInTheDocument();
     expect(document.querySelectorAll(".inventory-top-shell")).toHaveLength(1);
-    expect(document.querySelectorAll(".inventory-top-nav__link")).toHaveLength(8);
+    expect(document.querySelectorAll(".inventory-top-nav__link")).toHaveLength(9);
     expect(document.querySelectorAll(".inventory-top-nav__link.active")).toHaveLength(1);
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveClass("active");
   });

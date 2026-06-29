@@ -16,7 +16,7 @@ def test_inventory_customer_schema_revision_exists() -> None:
 def test_alembic_head_is_orders_revision() -> None:
     script = ScriptDirectory(str(BACKEND_ROOT / "alembic"))
 
-    assert script.get_current_head() == "20260521_0007"
+    assert script.get_current_head() == "20260526_0010"
 
 
 def test_migration_script_creates_expected_tables() -> None:

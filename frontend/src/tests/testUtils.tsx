@@ -22,5 +22,6 @@ export function renderRoute(initialEntry: InitialEntry = "/", options?: Omit<Ren
     );
   }
 
-  return render(<RouterProvider router={router} /> as ReactElement, { wrapper: Wrapper, ...options });
+  const renderResult = render(<RouterProvider router={router} /> as ReactElement, { wrapper: Wrapper, ...options });
+  return { ...renderResult, router };
 }

@@ -1,40 +1,88 @@
-# Python
+# Python / backend caches
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 
-# Virtual environments
+# Python environments and packaging
 .venv/
 venv/
 env/
+backend/.venv/
+backend/venv/
+backend/env/
+*.egg-info/
+pip-wheel-metadata/
+.python-version
 
-# Environment
+# Environment files and secrets
 .env
+.env.local
 .env.*
 !.env.example
+!.env.template
 
-# Build artifacts
-build/
-dist/
-*.egg-info/
+backend/.env
+backend/.env.local
+backend/.env.*
+!backend/.env.example
+!backend/.env.template
 
-# Frontend
+frontend/.env
+frontend/.env.local
+frontend/.env.*
+!frontend/.env.example
+!frontend/.env.template
+
+# Node / frontend generated output
 node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
+frontend/.vite/
+frontend/.vitest/
+frontend/coverage/
 
-# OS/editor files
+# Logs, temp files, and local runtime output
+*.log
+logs/
+tmp/
+temp/
+exports/
+diagnostics/
+backend/logs/
+backend/tmp/
+backend/temp/
+backend/exports/
+backend/diagnostics/
+backend/.tmp-tests/
+
+# Local databases and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+*.bak
+*.pgdump
+db_dumps/
+backups/
+
+# Generic build artifacts
+build/
+dist/
+site/
+
+# OS / editor files
 .DS_Store
 Thumbs.db
+Desktop.ini
 .idea/
 .vscode/
-
-docs/*_INVESTIGATION.md
-docs/*_IMPLEMENTATION.md
-docs/*_REPORT.md

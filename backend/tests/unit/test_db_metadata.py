@@ -12,6 +12,15 @@ def test_inventory_customer_tables_are_registered_in_metadata() -> None:
         "debt_payments",
         "customer_balance_ledgers",
         "document_counters",
+        "attendance_employees",
+        "attendance_periods",
+        "attendance_daily_records",
+        "attendance_work_types",
+        "attendance_bag_types",
+        "attendance_work_logs",
+        "attendance_cut_logs",
+        "attendance_extra_cut_logs",
+        "attendance_inventory_effects",
         "invoices",
         "invoice_items",
         "return_invoices",
@@ -125,3 +134,86 @@ def test_auth_schema_constraints_and_indexes_are_registered() -> None:
     assert "ix_refresh_tokens_token_hash" in refresh_index_names
     assert "ix_refresh_tokens_expires_at" in refresh_index_names
     assert "ix_refresh_tokens_user_revoked" in refresh_index_names
+
+
+def test_attendance_schema_constraints_and_indexes_are_registered() -> None:
+    employee_table = Base.metadata.tables["attendance_employees"]
+    employee_constraint_names = {constraint.name for constraint in employee_table.constraints}
+    employee_index_names = {index.name for index in employee_table.indexes}
+
+    assert "ck_attendance_employees_display_name_not_blank" in employee_constraint_names
+    assert "ck_attendance_employees_team_known" in employee_constraint_names
+    assert "uq_attendance_employees_display_name" in employee_constraint_names
+    assert "uq_attendance_employees_user_id" in employee_constraint_names
+    assert "ix_attendance_employees_display_name" in employee_index_names
+    assert "ix_attendance_employees_team_is_active" in employee_index_names
+
+    period_table = Base.metadata.tables["attendance_periods"]
+    period_constraint_names = {constraint.name for constraint in period_table.constraints}
+    period_index_names = {index.name for index in period_table.indexes}
+
+    assert "uq_attendance_periods_start_end" in period_constraint_names
+    assert "ck_attendance_periods_date_order" in period_constraint_names
+    assert "ix_attendance_periods_start_date" in period_index_names
+    assert "ix_attendance_periods_end_date" in period_index_names
+    assert "ix_attendance_periods_locked" in period_index_names
+
+    daily_record_table = Base.metadata.tables["attendance_daily_records"]
+    daily_constraint_names = {constraint.name for constraint in daily_record_table.constraints}
+    daily_index_names = {index.name for index in daily_record_table.indexes}
+
+    assert "uq_attendance_daily_records_employee_work_date" in daily_constraint_names
+    assert "ck_attendance_daily_records_status_known" in daily_constraint_names
+    assert "ck_attendance_daily_records_total_amount_non_negative" in daily_constraint_names
+    assert "ix_attendance_daily_records_work_date" in daily_index_names
+    assert "ix_attendance_daily_records_employee_date" in daily_index_names
+    assert "ix_attendance_daily_records_period_status" in daily_index_names
+
+    work_type_table = Base.metadata.tables["attendance_work_types"]
+    work_type_constraint_names = {constraint.name for constraint in work_type_table.constraints}
+    work_type_index_names = {index.name for index in work_type_table.indexes}
+
+    assert "ck_attendance_work_types_team_known" in work_type_constraint_names
+    assert "ck_attendance_work_types_team_blow" in work_type_constraint_names
+    assert "ck_attendance_work_types_input_type_known" in work_type_constraint_names
+    assert "ck_attendance_work_types_pricing_rule_known" in work_type_constraint_names
+    assert "uq_attendance_work_types_team_name" in work_type_constraint_names
+    assert "ix_attendance_work_types_team_active" in work_type_index_names
+
+    bag_type_table = Base.metadata.tables["attendance_bag_types"]
+    bag_type_constraint_names = {constraint.name for constraint in bag_type_table.constraints}
+    bag_type_index_names = {index.name for index in bag_type_table.indexes}
+
+    assert "ck_attendance_bag_types_name_not_blank" in bag_type_constraint_names
+    assert "ck_attendance_bag_types_quota_non_negative" in bag_type_constraint_names
+    assert "ck_attendance_bag_types_excess_price_non_negative" in bag_type_constraint_names
+    assert "ck_attendance_bag_types_product_link_consistent" in bag_type_constraint_names
+    assert "uq_attendance_bag_types_name" in bag_type_constraint_names
+    assert "ix_attendance_bag_types_active" in bag_type_index_names
+
+    work_log_table = Base.metadata.tables["attendance_work_logs"]
+    work_log_constraint_names = {constraint.name for constraint in work_log_table.constraints}
+    assert "uq_attendance_work_logs_daily_work_type" in work_log_constraint_names
+    assert "ck_attendance_work_logs_quantity_non_negative" in work_log_constraint_names
+
+    cut_log_table = Base.metadata.tables["attendance_cut_logs"]
+    cut_log_constraint_names = {constraint.name for constraint in cut_log_table.constraints}
+    assert "uq_attendance_cut_logs_daily_bag_type" in cut_log_constraint_names
+    assert "ck_attendance_cut_logs_quantity_non_negative" in cut_log_constraint_names
+
+    extra_cut_log_table = Base.metadata.tables["attendance_extra_cut_logs"]
+    extra_cut_log_constraint_names = {constraint.name for constraint in extra_cut_log_table.constraints}
+    assert "uq_attendance_extra_cut_logs_daily_bag_type" in extra_cut_log_constraint_names
+    assert "ck_attendance_extra_cut_logs_quantity_positive" in extra_cut_log_constraint_names
+
+    effect_table = Base.metadata.tables["attendance_inventory_effects"]
+    effect_constraint_names = {constraint.name for constraint in effect_table.constraints}
+    effect_index_names = {index.name for index in effect_table.indexes}
+
+    assert "ck_attendance_inventory_effects_quantity_positive" in effect_constraint_names
+    assert "ck_attendance_inventory_effects_unit_type_known" in effect_constraint_names
+    assert "ck_attendance_inventory_effects_exactly_one_source" in effect_constraint_names
+    assert "uq_attendance_inventory_effects_cut_log_id" in effect_constraint_names
+    assert "uq_attendance_inventory_effects_extra_cut_log_id" in effect_constraint_names
+    assert "ix_attendance_inventory_effects_daily_record_id" in effect_index_names
+    assert "ix_attendance_inventory_effects_product_id" in effect_index_names

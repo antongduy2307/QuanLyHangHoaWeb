@@ -1,3 +1,14 @@
+from app.infrastructure.db.models.attendance import (
+    AttendanceBagType,
+    AttendanceCutLog,
+    AttendanceDailyRecord,
+    AttendanceEmployee,
+    AttendanceExtraCutLog,
+    AttendanceInventoryEffect,
+    AttendancePeriod,
+    AttendanceWorkLog,
+    AttendanceWorkType,
+)
 from app.infrastructure.db.models.auth import RefreshToken, User
 from app.infrastructure.db.models.customer import Customer, CustomerBalanceLedger, DebtPayment
 from app.infrastructure.db.models.documents import DocumentCounter
@@ -11,6 +22,15 @@ __all__ = [
     "CustomerBalanceLedger",
     "DebtPayment",
     "DocumentCounter",
+    "AttendanceEmployee",
+    "AttendanceBagType",
+    "AttendanceCutLog",
+    "AttendanceDailyRecord",
+    "AttendanceExtraCutLog",
+    "AttendanceInventoryEffect",
+    "AttendancePeriod",
+    "AttendanceWorkLog",
+    "AttendanceWorkType",
     "Invoice",
     "InvoiceItem",
     "InventoryBalance",

@@ -23,7 +23,7 @@ import { useProducts } from "../inventory/productQueries";
 import { useCustomers } from "../customers/customerQueries";
 import { useCreateOrder } from "../orders/orderQueries";
 import { useCreateReturn, useReturns } from "../returns/returnQueries";
-import { invoiceKeys, useCreateInvoice, useInvoices, useUpdateInvoiceById } from "./invoiceQueries";
+import { invoiceKeys, useCreateInvoice, useInvoice, useInvoices, useUpdateInvoiceById } from "./invoiceQueries";
 import {
   defaultPriceForUnit,
   enabledUnitsForProduct,
@@ -563,13 +563,14 @@ export function InvoiceCreatePage() {
   const [drafts, setDrafts] = useState<PosDraft[]>(() =>
     isEditHydrationRoute ? [] : [sourceOrderDraftState ? applySourceOrderDraftState(sourceOrderDraftState) : newDraft()],
   );
-  const [activeDraftId, setActiveDraftId] = useState<string | null>(() => (isEditHydrationRoute ? null : drafts[0]?.id ?? null));
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const pendingEditInvoiceIdRef = useRef<number | null>(null);
   const handledEditRequestKeyRef = useRef<string | null>(null);
   const draftsRef = useRef<PosDraft[]>(drafts);
+  const [pendingEditDraftState, setPendingEditDraftState] = useState<EditInvoiceDraftRouteState | null>(() => editInvoiceDraftState);
   const [editHydrationError, setEditHydrationError] = useState<string | null>(null);
   const [editHydrationVersion, setEditHydrationVersion] = useState(0);
   const [lineColumnWidths, setLineColumnWidths] = useState(defaultLineColumnWidths);
@@ -577,6 +578,21 @@ export function InvoiceCreatePage() {
   useEffect(() => {
     draftsRef.current = drafts;
   }, [drafts]);
+
+  useEffect(() => {
+    if (editInvoiceDraftState?.invoiceId) {
+      queueMicrotask(() => {
+        setPendingEditDraftState(editInvoiceDraftState);
+        setEditHydrationError(null);
+      });
+      return;
+    }
+    if (!sourceOrderDraftState) {
+      queueMicrotask(() => {
+        setPendingEditDraftState(null);
+      });
+    }
+  }, [editInvoiceDraftState, sourceOrderDraftState]);
 
   const activeProducts = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
   const activeCustomers = useMemo(() => customersQuery.data ?? [], [customersQuery.data]);
@@ -606,6 +622,11 @@ export function InvoiceCreatePage() {
   );
   const productById = useMemo(() => new Map(products.map((product) => [String(product.id), product])), [products]);
   const activeDraft = (activeDraftId ? drafts.find((draft) => draft.id === activeDraftId) : null) ?? drafts[0] ?? null;
+  const currentEditRouteState = pendingEditDraftState ?? editInvoiceDraftState;
+  const pendingEditInvoiceId = pendingEditDraftState?.invoiceId ?? null;
+  const editInvoiceQuery = useInvoice(pendingEditInvoiceId ?? 0, {
+    enabled: pendingEditInvoiceId !== null,
+  });
   const activeSaleDraft = isSaleDraft(activeDraft) ? activeDraft : null;
   const activeReturnDraft = isReturnDraft(activeDraft) ? activeDraft : null;
   const activeOrderDraft = isOrderDraft(activeDraft) ? activeDraft : null;
@@ -688,44 +709,44 @@ export function InvoiceCreatePage() {
   }
 
   function retryEditHydration() {
-    handledEditRequestKeyRef.current = null;
-    pendingEditInvoiceIdRef.current = null;
-        setEditHydrationVersion((current) => current + 1);
+    setEditHydrationError(null);
+    setEditHydrationVersion((current) => current + 1);
+    void editInvoiceQuery.refetch();
   }
 
   useEffect(() => {
-    if (!editInvoiceDraftState?.invoiceId || pendingEditInvoiceIdRef.current === editInvoiceDraftState.invoiceId) {
+    if (editHydrationVersion >= 0) {
       return;
     }
-    const requestKey = JSON.stringify(editInvoiceDraftState);
+    const requestKey = JSON.stringify(editInvoiceDraftState!);
     if (handledEditRequestKeyRef.current === requestKey) {
       return;
     }
 
     const existingDraft = drafts.find(
-      (draft) => isSaleDraft(draft) && draft.mode === "edit" && draft.invoiceId === editInvoiceDraftState.invoiceId,
+      (draft) => isSaleDraft(draft) && draft.mode === "edit" && draft.invoiceId === editInvoiceDraftState!.invoiceId,
     );
     if (existingDraft) {
       queueMicrotask(() => {
         handledEditRequestKeyRef.current = requestKey;
-                setActiveDraftId(existingDraft.id);
+                setActiveDraftId(existingDraft!.id);
       });
       return;
     }
 
     let cancelled = false;
-    pendingEditInvoiceIdRef.current = editInvoiceDraftState.invoiceId;
+    pendingEditInvoiceIdRef.current = editInvoiceDraftState!.invoiceId;
     
     void queryClient
       .fetchQuery({
-        queryKey: invoiceKeys.detail(editInvoiceDraftState.invoiceId),
-        queryFn: () => getInvoice(editInvoiceDraftState.invoiceId),
+        queryKey: invoiceKeys.detail(editInvoiceDraftState!.invoiceId),
+        queryFn: () => getInvoice(editInvoiceDraftState!.invoiceId),
       })
       .then((invoice) => {
         if (cancelled) {
           return;
         }
-        const nextDraft = applyEditInvoiceDraftState(invoice, editInvoiceDraftState);
+        const nextDraft = applyEditInvoiceDraftState(invoice, editInvoiceDraftState!);
         const currentDrafts = draftsRef.current;
         const existingEditDraft = currentDrafts.find(
           (candidate) => isSaleDraft(candidate) && candidate.mode === "edit" && candidate.invoiceId === invoice.id,
@@ -761,7 +782,7 @@ export function InvoiceCreatePage() {
         setEditHydrationError(isApiError(error) ? error.message : "Không thể tải hóa đơn để mở tab sửa.");
       })
       .finally(() => {
-        if (!cancelled && pendingEditInvoiceIdRef.current === editInvoiceDraftState.invoiceId) {
+        if (!cancelled && pendingEditInvoiceIdRef.current === editInvoiceDraftState!.invoiceId) {
           pendingEditInvoiceIdRef.current = null;
         }
       });
@@ -770,6 +791,82 @@ export function InvoiceCreatePage() {
       cancelled = true;
     };
   }, [drafts, editHydrationVersion, editInvoiceDraftState, queryClient]);
+
+  useEffect(() => {
+    if (!activeDraftId && drafts[0]) {
+      queueMicrotask(() => {
+        setActiveDraftId(drafts[0].id);
+      });
+    }
+  }, [activeDraftId, drafts]);
+
+  useEffect(() => {
+    if (!pendingEditDraftState?.invoiceId) {
+      return;
+    }
+
+    const existingDraft = drafts.find(
+      (draft) => isSaleDraft(draft) && draft.mode === "edit" && draft.invoiceId === pendingEditDraftState.invoiceId,
+    );
+    if (!existingDraft) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      setActiveDraftId(existingDraft.id);
+      setPendingEditDraftState(null);
+      setEditHydrationError(null);
+    });
+  }, [drafts, pendingEditDraftState]);
+
+  useEffect(() => {
+    if (!pendingEditDraftState?.invoiceId || !editInvoiceQuery.isSuccess) {
+      return;
+    }
+
+    const nextDraft = applyEditInvoiceDraftState(editInvoiceQuery.data, pendingEditDraftState);
+    const currentDrafts = draftsRef.current;
+    const existingEditDraft = currentDrafts.find(
+      (candidate) => isSaleDraft(candidate) && candidate.mode === "edit" && candidate.invoiceId === editInvoiceQuery.data.id,
+    );
+
+    if (existingEditDraft) {
+      setDrafts(
+        currentDrafts.map((candidate) =>
+          candidate.id === existingEditDraft.id && isSaleDraft(candidate)
+            ? {
+                ...candidate,
+                ...nextDraft,
+                id: existingEditDraft.id,
+              }
+            : candidate,
+        ),
+      );
+      setActiveDraftId(existingEditDraft.id);
+    } else if (currentDrafts.length === 1 && isPristineCreateSaleDraft(currentDrafts[0])) {
+      setDrafts([nextDraft]);
+      setActiveDraftId(nextDraft.id);
+    } else {
+      setDrafts([...currentDrafts, nextDraft]);
+      setActiveDraftId(nextDraft.id);
+    }
+
+    setPendingEditDraftState(null);
+    setEditHydrationError(null);
+    resetErrors();
+  }, [editInvoiceQuery.data, editInvoiceQuery.isSuccess, pendingEditDraftState]);
+
+  useEffect(() => {
+    if (!pendingEditDraftState?.invoiceId || !editInvoiceQuery.isError) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      setEditHydrationError(
+        isApiError(editInvoiceQuery.error) ? editInvoiceQuery.error.message : "Không thể tải hóa đơn để mở tab sửa.",
+      );
+    });
+  }, [editInvoiceQuery.error, editInvoiceQuery.isError, pendingEditDraftState]);
 
   function addDraft(type: PosDraftType) {
     const draft = newDraft(type);
@@ -1226,15 +1323,15 @@ export function InvoiceCreatePage() {
         <p className={editHydrationError ? "state-message error-message" : "state-message"}>
           {editHydrationError || "Đang tải hóa đơn cần sửa..."}
         </p>
-        {isEditHydrationRoute ? (
+        {currentEditRouteState?.invoiceId ? (
           <div className="row-actions">
             <button type="button" onClick={retryEditHydration}>
               Thử lại
             </button>
             <Link
               className="inventory-ghost-button"
-              to={editInvoiceDraftState?.returnTo || "/sales/invoices"}
-              state={editInvoiceDraftState?.detailState ?? undefined}
+              to={currentEditRouteState.returnTo || "/sales/invoices"}
+              state={currentEditRouteState.detailState ?? undefined}
             >
               {editInvoiceDraftState?.returnLabel || "Quay lại"}
             </Link>
@@ -1395,7 +1492,7 @@ export function InvoiceCreatePage() {
                       Bán hàng
                     </button>
                     <button type="button" role="menuitem" onClick={() => addDraft("linked_return")}>
-                      trả hàng theo hóa đơn
+                      Trả hàng theo hóa đơn
                     </button>
                     <button type="button" role="menuitem" onClick={() => addDraft("quick_return")}>
                       Trả hàng nhanh
@@ -2086,4 +2183,3 @@ export function InvoiceCreatePage() {
     </InventoryModuleShell>
   );
 }
-

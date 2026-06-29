@@ -124,8 +124,18 @@ class InventoryService:
         unit_type: UnitType | str,
         note: str | None = None,
         record_adjustment: bool = True,
+        adjustment_datetime: datetime | None = None,
     ) -> InventoryBalance:
-        return self._apply_stock_change(session, product_id, quantity, unit_type, increase=True, note=note, record_adjustment=record_adjustment)
+        return self._apply_stock_change(
+            session,
+            product_id,
+            quantity,
+            unit_type,
+            increase=True,
+            note=note,
+            record_adjustment=record_adjustment,
+            adjustment_datetime=adjustment_datetime,
+        )
 
     def decrease_stock(
         self,
@@ -135,8 +145,18 @@ class InventoryService:
         unit_type: UnitType | str,
         note: str | None = None,
         record_adjustment: bool = True,
+        adjustment_datetime: datetime | None = None,
     ) -> InventoryBalance:
-        return self._apply_stock_change(session, product_id, quantity, unit_type, increase=False, note=note, record_adjustment=record_adjustment)
+        return self._apply_stock_change(
+            session,
+            product_id,
+            quantity,
+            unit_type,
+            increase=False,
+            note=note,
+            record_adjustment=record_adjustment,
+            adjustment_datetime=adjustment_datetime,
+        )
 
     def set_stock_to_target(
         self,
@@ -203,6 +223,7 @@ class InventoryService:
         increase: bool,
         note: str | None,
         record_adjustment: bool,
+        adjustment_datetime: datetime | None,
     ) -> InventoryBalance:
         product = self._repository.get_product_for_update(session, product_id)
         mode = UnitMode(product.unit_mode)
@@ -227,7 +248,7 @@ class InventoryService:
                 session,
                 StockAdjustment(
                     product_id=product.id,
-                    adjustment_datetime=datetime.now(timezone.utc),
+                    adjustment_datetime=adjustment_datetime or datetime.now(timezone.utc),
                     movement_type="STOCK_INCREASE" if increase else "STOCK_DECREASE",
                     unit_type=normalized_unit_type.value,
                     quantity=normalized_quantity,

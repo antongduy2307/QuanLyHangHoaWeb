@@ -3,6 +3,7 @@ import { Navigate, type RouteObject } from "react-router-dom";
 import { LoginPage } from "../auth/LoginPage";
 import { RequireAuth } from "../auth/RequireAuth";
 import { RequireRole } from "../auth/RequireRole";
+import { AttendancePage } from "../features/attendance/AttendancePage";
 import { CustomerCreatePage } from "../features/customers/CustomerCreatePage";
 import { CustomerDetailPage } from "../features/customers/CustomerDetailPage";
 import { CustomerEditPage } from "../features/customers/CustomerEditPage";
@@ -23,11 +24,13 @@ import { InvoiceCreatePage } from "../features/sales/InvoiceCreatePage";
 import { InvoiceDetailPage } from "../features/sales/InvoiceDetailPage";
 import { InvoiceEditPage } from "../features/sales/InvoiceEditPage";
 import { InvoiceListPage } from "../features/sales/InvoiceListPage";
-import { SettingsPlaceholder } from "../features/settings/SettingsPlaceholder";
+import { SettingsPage } from "../features/settings/SettingsPage";
 import { AdminLayout } from "../layouts/AdminLayout";
 
 const adminShellRoles = ["owner", "admin", "read_only"] as const;
 const adminWriteRoles = ["owner", "admin"] as const;
+const attendanceShellRoles = ["owner", "admin", "attendance_manager", "read_only"] as const;
+const settingsShellRoles = ["owner", "admin", "attendance_manager", "read_only"] as const;
 
 export const appRoutes: RouteObject[] = [
   { path: "/login", element: <LoginPage /> },
@@ -36,6 +39,22 @@ export const appRoutes: RouteObject[] = [
     element: (
       <RequireAuth allowedRoles={adminShellRoles}>
         <DashboardPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/attendance",
+    element: (
+      <RequireAuth allowedRoles={attendanceShellRoles}>
+        <AttendancePage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/settings",
+    element: (
+      <RequireAuth allowedRoles={settingsShellRoles}>
+        <SettingsPage />
       </RequireAuth>
     ),
   },
@@ -123,7 +142,6 @@ export const appRoutes: RouteObject[] = [
         ),
       },
       { path: "reports", element: <ReportsPlaceholder /> },
-      { path: "settings", element: <SettingsPlaceholder /> },
     ],
   },
 ];

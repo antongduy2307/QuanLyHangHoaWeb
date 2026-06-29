@@ -1,5 +1,6 @@
 export const adminRoutes = {
   dashboard: "/",
+  attendance: "/attendance",
   products: "/inventory/products",
   customers: "/customers",
   history: "/history",
